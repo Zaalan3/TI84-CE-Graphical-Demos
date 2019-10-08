@@ -1,0 +1,30 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\GFX\TILES.C"
+	.assume ADL=1
+	SEGMENT DATA
+_tiles_pal:
+	DW	34851
+	DW	41094
+	DW	39117
+	DW	9513
+	DW	49446
+	DW	39300
+	DW	58633
+	DW	14796
+	DW	44537
+	DW	59877
+	DW	49748
+	DW	13989
+	DW	27315
+	DW	14105
+	DW	28491
+	DW	61370
+	XDEF _tiles_pal
+;    1	// convpng v7.1
+;    2	#include <stdint.h>
+;    3	#include "tiles.h"
+;    4	
+;    5	uint16_t tiles_pal[16] = {
+	END

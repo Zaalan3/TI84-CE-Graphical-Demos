@@ -1,0 +1,644 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\MESH.C"
+	.assume ADL=1
+	SEGMENT BSS
+_tverts:
+	DS	3
+_sintable:
+	DS	256
+	SEGMENT DATA
+_bilerp:
+	DW24	14879232
+;    1	
+;    2	#include <stdbool.h>
+;    3	#include <stddef.h>
+;    4	#include <stdint.h>
+;    5	#include <tice.h>
+;    6	
+;    7	#include <math.h>
+;    8	#include <stdio.h>
+;    9	#include <stdlib.h>
+;   10	#include <string.h>
+;   11	
+;   12	#include "mesh.h" 
+;   13	
+;   14	#define x0 (x + tverts[mesh.faces[i].v0].x)
+;   15	#define y0 (y + tverts[mesh.faces[i].v0].y) 
+;   16	#define x1 (x + tverts[mesh.faces[i].v1].x)
+;   17	#define y1 (y + tverts[mesh.faces[i].v1].y)
+;   18	#define x2 (x + tverts[mesh.faces[i].v2].x)
+;   19	#define y2 (y + tverts[mesh.faces[i].v2].y)
+;   20	#define x3 (x + tverts[mesh.faces[i].v3].x)
+;   21	#define y3 (y + tverts[mesh.faces[i].v3].y)
+;   22	
+;   23	static vertex_t* tverts; 
+;   24	static int8_t sintable[256]; 
+;   25	void bilerpInit(void);
+;   26	
+;   27	// (x0,y0) - (x3,y3) : points of quadrilateral in clockwise order 
+;   28	// texture: pointer to 16x16 texture data
+;   29	static void (*bilerp)(int24_t,int24_t,int24_t,int24_t,int24_t,int24_t,int24_t,int24_t,uint8_t*) = 
+;   30		(void (*)(int24_t,int24_t,int24_t,int24_t,int24_t,int24_t,int24_t,int24_t,uint8_t*))0xE30A00;
+	SEGMENT CODE
+;   31	 
+;   32	void initMesh(void) { 
+_initMesh:
+	LD	HL,-2
+	CALL	__frameset
+;   33		uint16_t i; 
+;   34		bilerpInit(); 
+	CALL	_bilerpInit
+;   35		tverts = malloc(64*sizeof(vertex_t));
+	LD	BC,128
+	PUSH	BC
+	CALL	_malloc
+	POP	BC
+	LD	(_tverts),HL
+;   36		for(i = 0; i < 256; i++) { 
+	LD	(IX+-2),0
+	LD	(IX+-1),0
+	JR	L_3
+L_1:
+;   37			sintable[i] = 127.9999*sin(i*(M_PI/128.0)); 
+	LD	BC,(IX+-2)
+	CALL	__stoiu
+	LD	BC,HL
+	XOR	A,A
+	CALL	__ultof
+	LD	HL,13176795
+	LD	E,60
+	CALL	__fmul
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_sin
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,16777203
+	LD	E,66
+	CALL	__fmul
+	CALL	__ftol
+	LD	A,C
+	LD	BC,(IX+-2)
+	CALL	__stoiu
+	LD	BC,_sintable
+	ADD	HL,BC
+	LD	(HL),A
+	LD	HL,(IX+-2)
+	INC	HL
+	LD	(IX+-2),L
+	LD	(IX+-1),H
+;   38		} 
+L_3:
+	LD.LIS	BC,256
+	LD	HL,(IX+-2)
+	OR	A,A
+	SBC.SIS	HL,BC
+	JR	C,L_1
+;   39	} 
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _initMesh ***************************
+;Name                         Addr/Register   Size   Type
+;_sintable                           STATIC    256   variable
+;_sin                                IMPORT  -----   function
+;_tverts                             STATIC      3   variable
+;_malloc                             IMPORT  -----   function
+;_bilerpInit                         IMPORT  -----   function
+;i                                     IX-2      2   variable
+
+
+; Stack Frame Size: 8 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   40	
+;   41	void endMesh(void) { 
+_endMesh:
+;   42		free(tverts); 
+	LD	BC,(_tverts)
+	PUSH	BC
+	CALL	_free
+	POP	BC
+;   43	} 
+	RET	
+
+
+;**************************** _endMesh ***************************
+;Name                         Addr/Register   Size   Type
+;_tverts                             STATIC      3   variable
+;_free                               IMPORT  -----   function
+
+
+; Stack Frame Size: 6 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   44		
+;   45	void drawMesh(mesh_t mesh,uint8_t angle,uint8_t x,uint8_t y,uint8_t scale) {
+_drawMesh:
+	LD	HL,-139
+	CALL	__frameset
+;   46		uint8_t i; 
+;   47		int8_t s = sintable[angle]; 
+	LD	A,(IX+15)
+	UEXT	HL
+	LD	L,A
+	LD	BC,_sintable
+	ADD	HL,BC
+	LD	A,(HL)
+	LD	(IX+-3),A
+;   48		int8_t c = sintable[(angle+64)%256];
+	LD	A,(IX+15)
+	UEXT	HL
+	LD	L,A
+	LD	IY,HL
+	LEA	HL,IY+64
+	LD	BC,256
+	CALL	__irems
+	LD	BC,_sintable
+	ADD	HL,BC
+	LD	A,(HL)
+	LD	(IX+-2),A
+;   49		//translate vertices
+;   50		for(i = 0; i<mesh.vertnum;i++) { 
+	LD	(IX+-1),0
+	JR	L_9
+L_7:
+;   51			tverts[i].x = (mesh.verts[i].x*c - mesh.verts[i].y*s)>>scale; 
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	LD	DE,HL
+	LD	(IX+-106),HL	; spill
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	LD	BC,HL
+	LD	HL,(IX+6)
+	LD	(IX+-103),BC	; spill
+	LD	(IX+-109),BC	; spill
+	LD	BC,(IX+-103)	; unspill
+;   52			tverts[i].y = (mesh.verts[i].x*s + mesh.verts[i].y*c)>>scale; 
+	LD	(IX+-103),BC	; spill
+	LD	(IX+-112),BC	; spill
+	LD	BC,(IX+-103)	; unspill
+	LD	(IX+-115),BC	; spill
+	ADD	HL,DE
+	LD	IY,HL
+	LD	A,(IY+0)
+	LD	D,A
+	SEXT	HL
+	LD	L,D
+	LD	A,(IX+-2)
+	LD	DE,HL
+	SEXT	HL
+	LD	L,(IX+-2)
+	LD	BC,HL
+	LD	HL,DE
+	CALL	__imuls
+	LD	DE,HL
+	LD	HL,(IX+6)
+	LD	BC,(IX+-106)	; unspill
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+1)
+	LD	(IX+-116),A
+	SEXT	HL
+	LD	L,(IX+-116)
+	LD	(IX+-119),HL
+	LD	A,(IX+-3)
+	SEXT	HL
+	LD	L,(IX+-3)
+	LD	BC,HL
+	LD	HL,(IX+-119)
+	CALL	__imuls
+	LD	(IX+-122),DE	; spill
+	LD	(IX+-125),HL	; spill
+	LD	HL,(IX+-122)
+	OR	A,A
+	LD	A,(IX+24)
+	LD	DE,(IX+-125)	; unspill
+	SBC	HL,DE
+	LD	DE,HL
+	UEXT	HL
+	LD	L,A
+	LD	BC,HL
+	LD	HL,DE
+	CALL	__ishrs
+	LD	A,L
+	LD	HL,(_tverts)
+	LD	BC,(IX+-109)	; unspill
+	ADD	HL,BC
+	LD	IY,HL
+	LD	(IY+0),A
+	LD	HL,(IX+6)
+	LD	BC,(IX+-112)	; unspill
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+0)
+	LD	D,A
+	SEXT	HL
+	LD	L,D
+	LD	A,(IX+-3)
+	LD	DE,(_tverts)
+	LD	(IX+-128),HL
+	SEXT	HL
+	LD	L,(IX+-3)
+	LD	BC,HL
+	LD	HL,(IX+-128)
+	CALL	__imuls
+	PUSH	IY
+	LEA	IY,IX+-128	; spill
+	LD	(IY+-3),HL
+	POP	IY
+	LD	HL,(IX+6)
+	LD	BC,(IX+-115)	; unspill
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+1)
+	PUSH	IY
+	LEA	IY,IX+-128	; spill
+	LD	(IY+-4),A
+	LD	(IY+-5),A	; unspill
+	LD	A,(IY+-4)
+	POP	IY
+	SEXT	HL
+	PUSH	IY
+	LEA	IY,IX+-128	; unspill
+	LD	A,(IY+-5)
+	POP	IY
+	LD	L,A
+	PUSH	IY
+	LEA	IY,IX+-128	; spill
+	LD	(IY+-8),HL
+	POP	IY
+	LD	A,(IX+-2)
+	SEXT	HL
+	LD	L,(IX+-2)
+	LD	(IX+-103),HL	; spill
+	PUSH	IY
+	LEA	IY,IX+-128	; unspill
+	LD	BC,(IY+-8)
+	POP	IY
+	LD	HL,BC
+	LD	BC,(IX+-103)	; unspill
+	CALL	__imuls
+	PUSH	IY
+	LEA	IY,IX+-128	; unspill
+	LD	BC,(IY+-3)
+	POP	IY
+	ADD	HL,BC
+	PUSH	IY
+	LEA	IY,IX+-128	; spill
+	LD	(IY+-11),HL
+	POP	IY
+	LD	A,(IX+24)
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-103),HL	; spill
+	PUSH	IY
+	LEA	IY,IX+-128	; unspill
+	LD	BC,(IY+-11)
+	POP	IY
+	LD	HL,BC
+	LD	BC,(IX+-103)	; unspill
+	CALL	__ishrs
+	LD	B,L
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	ADD	HL,DE
+	LD	IY,HL
+	LD	(IY+1),B
+	INC	(IX+-1)
+;   53		} 	
+L_9:
+	LD	A,(IX+-1)
+	CP	A,(IX+12)
+	JR	C,L_7
+;   54		// draw faces 
+;   55		for( i = 0; i<mesh.facenum;i++ ) { 
+	LD	(IX+-1),0
+	JR	L_13
+L_11:
+;   56			bilerp(x0,x1,x2,x3,y0,y1,y2,y3,mesh.faces[i].texture); 
+	LD	A,(IX+-1)
+	UEXT	HL
+	LD	L,A
+	LD	A,7
+	CALL	__imul_b
+	LD	BC,HL
+	LD	HL,(IX+9)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	DE,(_bilerp)
+	LD	(IX+-6),HL	; spill
+	LD	HL,(IY+4)
+	LD	(IX+-9),HL	; spill
+	LD	HL,(IX+-6)	; unspill
+	LD	(IX+-6),HL	; spill
+	LD	HL,(IX+-9)	; unspill
+	PUSH	HL
+	LD	HL,(IX+9)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+3)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	LD	(IX+-12),DE	; spill
+	LD	DE,(_tverts)
+	LD	(IX+-15),DE	; spill
+	LD	DE,(IX+-12)	; unspill
+	LD	(IX+-12),DE	; spill
+	LD	DE,(IX+-15)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-12)	; unspill
+	LD	IY,HL
+	LD	A,(IY+1)
+	LD	(IX+-16),A
+	SEXT	HL
+	LD	L,(IX+-16)
+	LD	(IX+-19),DE	; spill
+	LD	(IX+-22),HL	; spill
+	LD	DE,(IX+-19)	; unspill
+	LD	A,(IX+21)
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-19),DE	; spill
+	LD	DE,(IX+-22)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-19)	; unspill
+	PUSH	HL
+	LD	HL,(IX+9)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+2)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	LD	(IX+-25),DE	; spill
+	LD	DE,(_tverts)
+	LD	(IX+-28),DE	; spill
+	LD	DE,(IX+-25)	; unspill
+	LD	(IX+-25),DE	; spill
+	LD	DE,(IX+-28)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-25)	; unspill
+	LD	IY,HL
+	LD	A,(IY+1)
+	LD	(IX+-29),A
+	SEXT	HL
+	LD	L,(IX+-29)
+	LD	(IX+-32),DE	; spill
+	LD	(IX+-35),HL	; spill
+	LD	DE,(IX+-32)	; unspill
+	LD	A,(IX+21)
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-32),DE	; spill
+	LD	DE,(IX+-35)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-32)	; unspill
+	PUSH	HL
+	LD	HL,(IX+9)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+1)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	LD	(IX+-38),DE	; spill
+	LD	DE,(_tverts)
+	LD	(IX+-41),DE	; spill
+	LD	DE,(IX+-38)	; unspill
+	LD	(IX+-38),DE	; spill
+	LD	DE,(IX+-41)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-38)	; unspill
+	LD	IY,HL
+	LD	A,(IY+1)
+	LD	(IX+-42),A
+	SEXT	HL
+	LD	L,(IX+-42)
+	LD	(IX+-45),DE	; spill
+	LD	(IX+-48),HL	; spill
+	LD	DE,(IX+-45)	; unspill
+	LD	A,(IX+21)
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-45),DE	; spill
+	LD	DE,(IX+-48)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-45)	; unspill
+	PUSH	HL
+	LD	HL,(IX+9)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+0)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	LD	(IX+-51),DE	; spill
+	LD	DE,(_tverts)
+	LD	(IX+-54),DE	; spill
+	LD	DE,(IX+-51)	; unspill
+	LD	(IX+-51),DE	; spill
+	LD	DE,(IX+-54)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-51)	; unspill
+	LD	IY,HL
+	LD	A,(IY+1)
+	LD	(IX+-55),A
+	SEXT	HL
+	LD	L,(IX+-55)
+	LD	(IX+-58),DE	; spill
+	LD	(IX+-61),HL	; spill
+	LD	DE,(IX+-58)	; unspill
+	LD	A,(IX+21)
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-58),DE	; spill
+	LD	DE,(IX+-61)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-58)	; unspill
+	PUSH	HL
+	LD	HL,(IX+9)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+3)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	LD	(IX+-64),DE	; spill
+	LD	DE,(_tverts)
+	LD	(IX+-67),DE	; spill
+	LD	DE,(IX+-64)	; unspill
+	LD	(IX+-64),DE	; spill
+	LD	DE,(IX+-67)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-64)	; unspill
+	LD	IY,HL
+	LD	A,(IY+0)
+	LD	(IX+-68),A
+	SEXT	HL
+	LD	L,(IX+-68)
+	LD	(IX+-71),DE	; spill
+	LD	(IX+-74),HL	; spill
+	LD	DE,(IX+-71)	; unspill
+	LD	A,(IX+18)
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-71),DE	; spill
+	LD	DE,(IX+-74)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-71)	; unspill
+	PUSH	HL
+	LD	HL,(IX+9)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+2)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	LD	(IX+-77),DE	; spill
+	LD	DE,(_tverts)
+	LD	(IX+-80),DE	; spill
+	LD	DE,(IX+-77)	; unspill
+	LD	(IX+-77),DE	; spill
+	LD	DE,(IX+-80)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-77)	; unspill
+	LD	IY,HL
+	LD	A,(IY+0)
+	LD	(IX+-81),A
+	SEXT	HL
+	LD	L,(IX+-81)
+	LD	(IX+-84),DE	; spill
+	LD	(IX+-87),HL	; spill
+	LD	DE,(IX+-84)	; unspill
+	LD	A,(IX+18)
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-84),DE	; spill
+	LD	DE,(IX+-87)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-84)	; unspill
+	PUSH	HL
+	LD	HL,(IX+9)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+1)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	LD	(IX+-90),DE	; spill
+	LD	DE,(_tverts)
+	LD	(IX+-93),DE	; spill
+	LD	DE,(IX+-90)	; unspill
+	LD	(IX+-90),DE	; spill
+	LD	DE,(IX+-93)	; unspill
+	ADD	HL,DE
+	LD	DE,(IX+-90)	; unspill
+	LD	IY,HL
+	LD	A,(IY+0)
+	LD	(IX+-94),A
+	SEXT	HL
+	LD	L,(IX+-94)
+	LD	(IX+-97),DE	; spill
+	LD	(IX+-100),HL	; spill
+	LD	DE,(IX+-97)	; unspill
+	LD	A,(IX+18)
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-97),DE	; spill
+	LD	DE,(IX+-100)	; unspill
+	ADD	HL,DE
+	PUSH	HL
+	LD	HL,(IX+9)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+0)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,HL
+	LD	BC,(_tverts)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	A,(IY+0)
+	LD	B,A
+	SEXT	HL
+	LD	L,B
+	LD	BC,HL
+	LD	A,(IX+18)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,BC
+	PUSH	HL
+	LD	IY,(IX+-97)
+	CALL	__indcall
+	LD	IY,27
+	ADD	IY,SP
+	LD	SP,IY
+	INC	(IX+-1)
+;   57		}
+L_13:
+	LD	A,(IX+-1)
+	CP	A,(IX+13)
+	JR	C,L_11
+;   58	} 
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _drawMesh ***************************
+;Name                         Addr/Register   Size   Type
+;_bilerp                             STATIC      3   variable
+;_tverts                             STATIC      3   variable
+;_sintable                           STATIC    256   variable
+;s                                     IX-3      1   variable
+;c                                     IX-2      1   variable
+;i                                     IX-1      1   variable
+;scale                                IX+24      1   parameter
+;y                                    IX+21      1   parameter
+;x                                    IX+18      1   parameter
+;angle                                IX+15      1   parameter
+;mesh                                  IX+6      8   parameter
+
+
+; Stack Frame Size: 166 (bytes)
+;       Spill Code: -5 (instruction)
+
+
+	XREF _bilerpInit:ROM
+	XREF _free:ROM
+	XREF _malloc:ROM
+	XREF _sin:ROM
+	XREF __indcall:ROM
+	XREF __imuls:ROM
+	XREF __irems:ROM
+	XREF __ishrs:ROM
+	XREF __fmul:ROM
+	XREF __ftol:ROM
+	XREF __ultof:ROM
+	XREF __stoiu:ROM
+	XREF __frameset:ROM
+	XREF __imul_b:ROM
+	XDEF _drawMesh
+	XDEF _endMesh
+	XDEF _initMesh
+	END

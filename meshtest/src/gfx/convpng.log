@@ -1,0 +1,16 @@
+opened convpng.ini
+
+--- tiles (C) ---
+using defined palette db16.png ...
+3:
+ wood : converted!
+ stone : converted!
+ ship : converted!
+
+converted in 0 s
+
+[warning] image quality might be too low.
+please try grouping similar images, reducing image colors, 
+or selecting a better palette if conversion is not ideal.
+
+finished!

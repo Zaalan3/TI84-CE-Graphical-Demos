@@ -1,0 +1,269 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\MAIN.C"
+	.assume ADL=1
+	SEGMENT DATA
+_vert:
+	DB	248
+	DB	232
+	DB	8
+	DB	232
+	DB	232
+	DB	246
+	DB	248
+	DB	248
+	DB	8
+	DB	248
+	DB	24
+	DB	246
+	DB	232
+	DB	10
+	DB	248
+	DB	8
+	DB	8
+	DB	8
+	DB	24
+	DB	10
+	DB	248
+	DB	24
+	DB	8
+	DB	24
+	DB	246
+	DB	40
+	DB	10
+	DB	40
+	DB	246
+	DB	224
+	DB	10
+	DB	224
+_face:
+	DB	14
+	DB	15
+	DB	1
+	DB	0
+	DW24	_wood_data + 2
+	DB	0
+	DB	1
+	DB	4
+	DB	3
+	DW24	_wood_data + 2
+	DB	2
+	DB	3
+	DB	7
+	DB	6
+	DW24	_wood_data + 2
+	DB	3
+	DB	4
+	DB	8
+	DB	7
+	DW24	_wood_data + 2
+	DB	4
+	DB	5
+	DB	9
+	DB	8
+	DW24	_wood_data + 2
+	DB	7
+	DB	8
+	DB	11
+	DB	10
+	DW24	_wood_data + 2
+	DB	10
+	DB	11
+	DB	13
+	DB	12
+	DW24	_wood_data + 2
+_cross:
+	DW24	_vert
+	DW24	_face
+	DB	16
+	DB	7
+;    1	/* Keep these headers */
+;    2	#include <stdbool.h>
+;    3	#include <stddef.h>
+;    4	#include <stdint.h>
+;    5	#include <tice.h>
+;    6	 
+;    7	/* Standard headers (recommended) */
+;    8	#include <math.h>
+;    9	#include <stdio.h>
+;   10	#include <stdlib.h>
+;   11	#include <string.h>
+;   12	 
+;   13	#include <graphx.h>
+;   14	#include <keypadc.h> 
+;   15	
+;   16	#include "gfx/tiles.h" 
+;   17	#include "mesh.h" 
+;   18	 
+;   19	
+;   20	vertex_t vert[16] =
+;   21	{ 
+;   22		{-8,-24},{8,-24},
+;   23		{-24,-10},{-8,-8},{8,-8},{24,-10}, 
+;   24		{-24,10},{-8,8},{8,8},{24,10}, 
+;   25		{-8,24},{8,24},
+;   26		{-10,40},{10,40},
+;   27		{-10,-32},{10,-32}
+;   28	}; 
+;   29	
+;   30	face_t face[7] =
+;   31	{ 
+;   32		{14,15,1,0,wood_data+2},
+;   33		{0,1,4,3,wood_data+2},
+;   34		{2,3,7,6,wood_data+2},
+;   35		{3,4,8,7,wood_data+2},
+;   36		{4,5,9,8,wood_data+2},
+;   37		{7,8,11,10,wood_data+2},
+;   38		{10,11,13,12,wood_data+2}
+;   39	}; 
+;   40	
+;   41	mesh_t cross = {vert,face,16,7}; 
+	SEGMENT CODE
+;   42	
+;   43		
+;   44	void main(void) {
+_main:
+	LD	HL,-2
+	CALL	__frameset
+;   45		uint8_t scale = 8; 
+	LD	(IX+-1),8
+;   46		uint8_t angle = 0;  
+	LD	(IX+-2),0
+;   47	    gfx_Begin();
+	CALL	_gfx_Begin
+;   48		gfx_SetPalette(tiles_pal,sizeof_tiles_pal,0);
+	LD	BC,0
+	PUSH	BC
+	LD	BC,32
+	PUSH	BC
+	LD	BC,_tiles_pal
+	PUSH	BC
+	CALL	_gfx_SetPalette
+	POP	BC
+	POP	BC
+	POP	BC
+;   49		gfx_SetTextBGColor(0);	
+	LD	BC,0
+	PUSH	BC
+	CALL	_gfx_SetTextBGColor
+	POP	BC
+;   50		gfx_SetTextFGColor(0x0F);
+	LD	BC,15
+	PUSH	BC
+	CALL	_gfx_SetTextFGColor
+	POP	BC
+;   51	    gfx_ZeroScreen();
+	CALL	_gfx_ZeroScreen
+;   52	    gfx_SetDrawBuffer();
+	LD	BC,1
+	PUSH	BC
+	CALL	_gfx_SetDraw
+	POP	BC
+;   53		initMesh();  
+	CALL	_initMesh
+;   54	L1:     	
+;   55		while(!(os_GetCSC())){ 	
+	JR	L_1
+L_2:
+;   56			gfx_ZeroScreen();
+	CALL	_gfx_ZeroScreen
+;   57			drawMesh(cross,angle,160,120,scale);
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,120
+	PUSH	BC
+	LD	BC,160
+	PUSH	BC
+	LD	C,(IX+-2)
+	LD	B,0
+	PUSH	BC
+	PUSH	BC
+	PUSH	BC
+	PUSH	BC
+	OR	A,A
+	SBC	HL,HL
+	ADD	HL,SP
+	LD	DE,HL
+	LD	BC,8
+	LD	HL,_cross
+	LDIR	
+	CALL	_drawMesh
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;   58			gfx_SwapDraw();
+	CALL	_gfx_SwapDraw
+;   59			angle+=4;   
+	LD	A,(IX+-2)
+	ADD	A,4
+	LD	(IX+-2),A
+;   60		}
+L_1:
+	CALL	_os_GetCSC
+	OR	A,A
+	JR	Z,L_2
+;   61		if(--scale >= 6) goto L1; 
+	DEC	(IX+-1)
+	LD	A,(IX+-1)
+	CP	A,6
+	JR	NC,L_1
+;   62	    gfx_End();
+	CALL	_gfx_End
+;   63		endMesh(); 
+	CALL	_endMesh
+;   64	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _main ***************************
+;Name                         Addr/Register   Size   Type
+;_endMesh                            IMPORT  -----   function
+;_gfx_End                            IMPORT  -----   function
+;_os_GetCSC                          IMPORT  -----   function
+;_gfx_SwapDraw                       IMPORT  -----   function
+;_cross                              STATIC      8   variable
+;_drawMesh                           IMPORT  -----   function
+;_initMesh                           IMPORT  -----   function
+;_gfx_SetDraw                        IMPORT  -----   function
+;_gfx_ZeroScreen                     IMPORT  -----   function
+;_gfx_SetTextFGColor                 IMPORT  -----   function
+;_gfx_SetTextBGColor                 IMPORT  -----   function
+;_tiles_pal                          IMPORT     32   variable
+;_gfx_SetPalette                     IMPORT  -----   function
+;_gfx_Begin                          IMPORT  -----   function
+;angle                                 IX-2      1   variable
+;scale                                 IX-1      1   variable
+
+
+; Stack Frame Size: 8 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _drawMesh:ROM
+	XREF _endMesh:ROM
+	XREF _initMesh:ROM
+	XREF _tiles_pal:ROM
+	XREF _wood_data:ROM
+	XREF _gfx_SetTextBGColor:ROM
+	XREF _gfx_SetTextFGColor:ROM
+	XREF _gfx_SwapDraw:ROM
+	XREF _gfx_SetDraw:ROM
+	XREF _gfx_ZeroScreen:ROM
+	XREF _gfx_SetPalette:ROM
+	XREF _gfx_End:ROM
+	XREF _gfx_Begin:ROM
+	XREF _os_GetCSC:ROM
+	XREF __frameset:ROM
+	XDEF _main
+	XDEF _cross
+	XDEF _face
+	XDEF _vert
+	END
