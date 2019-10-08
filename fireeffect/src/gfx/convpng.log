@@ -1,0 +1,14 @@
+opened convpng.ini
+
+--- palette (C) ---
+using built-in rgb332 palette ...
+1:
+ Image1 : converted!
+
+converted in 0 s
+
+[warning] image quality might be too low.
+please try grouping similar images, reducing image colors, 
+or selecting a better palette if conversion is not ideal.
+
+finished!

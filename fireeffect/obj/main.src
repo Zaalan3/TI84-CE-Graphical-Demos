@@ -1,0 +1,517 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\MAIN.C"
+	.assume ADL=1
+	SEGMENT BSS
+_buf2:
+	DS	1200
+;    1	/*
+;    2	 *--------------------------------------
+;    3	 * Program Name: Fire Effect
+;    4	 * Author: Zaalane
+;    5	 * License:
+;    6	 * Description: Test Implementation of the Demoscene fire effect
+;    7	 *--------------------------------------
+;    8	*/
+;    9	
+;   10	/* Keep these headers */
+;   11	#include <stdbool.h>
+;   12	#include <stddef.h>
+;   13	#include <stdint.h>
+;   14	#include <tice.h>
+;   15	
+;   16	/* Standard headers (recommended) */
+;   17	#include <math.h>
+;   18	#include <stdio.h>
+;   19	#include <stdlib.h>
+;   20	#include <string.h>
+;   21	
+;   22	#include <graphx.h>
+;   23	#include <keypadc.h> 
+;   24	
+;   25	#include "gfx/palette.h" 
+;   26	void refresh(void); 
+;   27	void tick(void); 
+;   28	void draw(void); 
+;   29	
+;   30	#define W 40 
+;   31	#define H 30
+;   32	
+;   33	extern gfx_sprite_t screen;
+;   34	extern uint8_t buf1[H][W]; 
+;   35	uint8_t buf2[H][W];
+	SEGMENT CODE
+;   36	
+;   37	void main() {	
+_main:
+;   38		int i; 
+;   39		srandom(rtc_Time()); 
+	LD	A,(15925319)
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	LD	BC,(15925316)
+	PUSH	BC
+	CALL	_srandom
+	POP	BC
+	POP	BC
+;   40		
+;   41	    gfx_Begin();
+	CALL	_gfx_Begin
+;   42		gfx_SetPalette(palette_pal,sizeof_palette_pal,0); 
+	LD	BC,0
+	PUSH	BC
+	LD	BC,512
+	PUSH	BC
+	LD	BC,_palette_pal
+	PUSH	BC
+	CALL	_gfx_SetPalette
+	POP	BC
+	POP	BC
+	POP	BC
+;   43		gfx_SetColor(0xFF); 
+	LD	BC,255
+	PUSH	BC
+	CALL	_gfx_SetColor
+	POP	BC
+;   44		gfx_ZeroScreen(); 
+	CALL	_gfx_ZeroScreen
+;   45	    gfx_SetDrawBuffer(); 
+	LD	BC,1
+	PUSH	BC
+	CALL	_gfx_SetDraw
+	POP	BC
+;   46		
+;   47		kb_Scan();
+	CALL	_kb_Scan
+;   48		 
+;   49		while(!(kb_Data[6] & kb_Clear)) {	
+	JR	L_0
+L_1:
+;   50			tick();
+	CALL	_tick
+;   51			gfx_ZeroScreen();
+	CALL	_gfx_ZeroScreen
+;   52			gfx_ScaledSprite_NoClip(&screen,0,0,8,8); 
+	LD	BC,8
+	PUSH	BC
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	PUSH	BC
+	LD	BC,_screen
+	PUSH	BC
+	CALL	_gfx_ScaledSprite_NoClip
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;   53			gfx_SwapDraw(); 
+	CALL	_gfx_SwapDraw
+;   54			refresh();
+	CALL	_refresh
+;   55			
+;   56			kb_Scan(); 
+	CALL	_kb_Scan
+;   57		} 
+L_0:
+	LD	A,(16056348)
+	AND	A,64
+	JR	Z,L_1
+;   58	    gfx_End();
+	CALL	_gfx_End
+;   59	}
+	RET	
+
+
+;**************************** _main ***************************
+;Name                         Addr/Register   Size   Type
+;_gfx_End                            IMPORT  -----   function
+;_refresh                            IMPORT  -----   function
+;_gfx_SwapDraw                       IMPORT  -----   function
+;_screen                             IMPORT      3   variable
+;_gfx_ScaledSprite_NoClip            IMPORT  -----   function
+;_tick                               IMPORT  -----   function
+;_kb_Scan                            IMPORT  -----   function
+;_gfx_SetDraw                        IMPORT  -----   function
+;_gfx_ZeroScreen                     IMPORT  -----   function
+;_gfx_SetColor                       IMPORT  -----   function
+;_palette_pal                        IMPORT    512   variable
+;_gfx_SetPalette                     IMPORT  -----   function
+;_gfx_Begin                          IMPORT  -----   function
+;_srandom                            IMPORT  -----   function
+
+
+; Stack Frame Size: 6 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   60	
+;   61	void refresh() { 
+_refresh:
+	LD	HL,-3
+	CALL	__frameset
+;   62		int x;
+;   63		for(x = 0; x < W; x++) {
+	LD	BC,0
+	LD	(IX+-3),BC
+	JR	L_7
+L_5:
+;   64			buf1[H-1][x] = randInt(0,32);
+	CALL	_random
+	LD	BC,33
+	CALL	__iremu
+	LD	A,L
+	LD	HL,_buf1
+	LD	BC,1160
+	ADD	HL,BC
+	LD	BC,(IX+-3)
+	ADD	HL,BC
+	LD	(HL),A
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   65		} 
+L_7:
+	LD	BC,40
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	JP	M,L_5
+;   66	} 
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _refresh ***************************
+;Name                         Addr/Register   Size   Type
+;_buf1                               IMPORT   1200   variable
+;_random                             IMPORT  -----   function
+;x                                     IX-3      3   variable
+
+
+; Stack Frame Size: 9 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   67	
+;   68	void tick() {
+_tick:
+	LD	HL,-26
+	CALL	__frameset
+;   69	
+;   70		int x,y; 
+;   71		int lastline; 
+;   72		
+;   73		for(y = H-2; y >= 0; y--) { 
+	LD	BC,28
+	LD	(IX+-6),BC
+	JR	L_25
+L_23:
+;   74			lastline = 0; 
+	LD	BC,0
+	LD	(IX+-17),BC
+;   75			for(x = W-1; x >= 0;x--) { 
+	LD	BC,39
+	LD	(IX+-3),BC
+	JR	L_20
+L_18:
+;   76				uint8_t sum;
+;   77				uint8_t b; 
+;   78				switch(y) { 
+	LD	BC,28
+	LD	HL,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_12
+;   79					case H-2: 
+;   80						b = 0; 
+	LD	(IX+-8),0
+;   81						break; 
+	JR	L_16
+;   82					default: 
+L_12:
+;   83						b = buf1[y+2][x]; 
+	LD	IY,(IX+-6)
+	LEA	HL,IY+2
+	LD	BC,(IX+-3)
+	LD	A,40
+	CALL	__imul_b
+	LD	DE,_buf1
+	ADD	HL,DE
+	ADD	HL,BC
+	LD	A,(HL)
+	LD	(IX+-8),A
+;   84						break;
+;   85				} 
+L_16:
+;   86				switch(x) { 
+	LD	HL,(IX+-3)
+	CALL	__case8
+L__4:
+	DW	2
+	DB	0
+	DW24	L_13	
+
+	DB	39
+	DW24	L_14	
+
+	DW24	L_15	
+
+;   87					case 0: 
+L_13:
+;   88						sum = buf1[y+1][x] + buf1[y+1][x+1] + b;
+	LD	BC,(IX+-6)
+	INC	BC
+	LD	HL,40
+	CALL	__imulu
+	LD	BC,_buf1
+	ADD	HL,BC
+	LD	(IX+-20),HL
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	HL,(IX+-20)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	HL,(IX+-20)
+	LD	BC,(IX+-3)
+	ADD	HL,BC
+	LD	A,(IY)
+	ADD	A,(HL)
+	ADD	A,(IX+-8)
+	LD	(IX+-7),A
+;   89						buf2[y][x] = (sum*63) / 200;
+	LD	HL,(IX+-6)
+	LD	A,40
+	CALL	__imul_b
+	LD	BC,_buf2
+	ADD	HL,BC
+	LD	(IX+-14),HL
+	LD	BC,(IX+-3)
+	ADD	HL,BC
+	LD	(IX+-11),HL
+	LD	A,(IX+-7)
+	UEXT	HL
+	LD	L,A
+	LD	A,63
+	CALL	__imul_b
+	LD	BC,200
+	CALL	__idivs
+	LD	IY,(IX+-11)
+	LD	(IY),L
+;   90						break; 
+	JR	L_17
+;   91					case W-1: 
+L_14:
+;   92						sum = buf1[y+1][x] + buf1[y+1][x-1] + b;
+	LD	BC,(IX+-6)
+	INC	BC
+	LD	HL,40
+	CALL	__imulu
+	LD	BC,_buf1
+	ADD	HL,BC
+	LD	(IX+-23),HL
+	LD	BC,(IX+-3)
+	DEC	BC
+	LD	HL,(IX+-23)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	HL,(IX+-23)
+	LD	BC,(IX+-3)
+	ADD	HL,BC
+	LD	A,(IY)
+	ADD	A,(HL)
+	ADD	A,(IX+-8)
+	LD	(IX+-7),A
+;   93						buf2[y][x] = (sum*63) / 200;
+	LD	HL,(IX+-6)
+	LD	A,40
+	CALL	__imul_b
+	LD	BC,_buf2
+	ADD	HL,BC
+	LD	(IX+-14),HL
+	LD	BC,(IX+-3)
+	ADD	HL,BC
+	LD	(IX+-11),HL
+	LD	A,(IX+-7)
+	UEXT	HL
+	LD	L,A
+	LD	A,63
+	CALL	__imul_b
+	LD	BC,200
+	CALL	__idivs
+	LD	IY,(IX+-11)
+	LD	(IY),L
+;   94						break;
+	JR	L_17
+;   95					default: 
+L_15:
+;   96						sum = buf1[y+1][x] + buf1[y+1][x+1] + buf1[y+1][x-1] + b;
+	LD	BC,(IX+-6)
+	INC	BC
+	LD	HL,40
+	CALL	__imulu
+	LD	BC,_buf1
+	ADD	HL,BC
+	LD	(IX+-26),HL
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	HL,(IX+-26)
+	ADD	HL,BC
+	LD	IY,HL
+	LD	HL,(IX+-26)
+	LD	BC,(IX+-3)
+	ADD	HL,BC
+	LD	A,(IY)
+	ADD	A,(HL)
+	LD	BC,(IX+-3)
+	DEC	BC
+	LD	HL,(IX+-26)
+	ADD	HL,BC
+	ADD	A,(HL)
+	ADD	A,(IX+-8)
+	LD	(IX+-7),A
+;   97						buf2[y][x] = (sum*47) / 200;
+	LD	HL,(IX+-6)
+	LD	A,40
+	CALL	__imul_b
+	LD	BC,_buf2
+	ADD	HL,BC
+	LD	(IX+-14),HL
+	LD	BC,(IX+-3)
+	ADD	HL,BC
+	LD	(IX+-11),HL
+	LD	A,(IX+-7)
+	UEXT	HL
+	LD	L,A
+	LD	A,47
+	CALL	__imul_b
+	LD	BC,200
+	CALL	__idivs
+	LD	IY,(IX+-11)
+	LD	(IY),L
+;   98						break;
+;   99				} 
+L_17:
+;  100				
+;  101				lastline += buf2[y][x]; 
+	LD	HL,(IX+-11)
+	LD	A,(HL)
+	LD	BC,(IX+-17)
+	UEXT	HL
+	LD	L,A
+	ADD	HL,BC
+	LD	(IX+-17),HL
+	LD	BC,(IX+-3)
+	DEC	BC
+	LD	(IX+-3),BC
+;  102			}
+L_20:
+	LD	HL,(IX+-3)
+	CALL	__icmpzero
+	CALL	__setflag
+	JP	P,L_18
+;  103			if ( lastline < 10 ) { 
+	LD	BC,10
+	LD	HL,(IX+-17)
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_24
+;  104				memset(buf2,0,y*W); 
+	LD	HL,(IX+-6)
+	LD	A,40
+	CALL	__imul_b
+	PUSH	HL
+	LD	BC,0
+	PUSH	BC
+	LD	BC,_buf2
+	PUSH	BC
+	CALL	_memset
+	POP	BC
+	POP	BC
+	POP	BC
+;  105				break;
+	JR	L_26
+;  106			} 
+;  107		}
+L_24:
+	LD	BC,(IX+-6)
+	DEC	BC
+	LD	(IX+-6),BC
+L_25:
+	LD	HL,(IX+-6)
+	CALL	__icmpzero
+	CALL	__setflag
+	JP	P,L_23
+L_26:
+;  108		
+;  109		memcpy(buf1,buf2,W*H);
+	LD	BC,1200
+	PUSH	BC
+	LD	BC,_buf2
+	PUSH	BC
+	LD	BC,_buf1
+	PUSH	BC
+	CALL	_memcpy
+	POP	BC
+	POP	BC
+	POP	BC
+;  110		
+;  111	} 
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _tick ***************************
+;Name                         Addr/Register   Size   Type
+;_memcpy                             IMPORT  -----   function
+;_memset                             IMPORT  -----   function
+;_buf2                               STATIC   1200   variable
+;_buf1                               IMPORT   1200   variable
+;lastline                             IX-17      3   variable
+;G_0                                  IX-14      3   variable
+;G_1                                  IX-11      3   variable
+;b                                     IX-8      1   variable
+;sum                                   IX-7      1   variable
+;y                                     IX-6      3   variable
+;x                                     IX-3      3   variable
+
+
+; Stack Frame Size: 32 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _buf1:ROM
+	XREF _screen:ROM
+	XREF _palette_pal:ROM
+	XREF _kb_Scan:ROM
+	XREF _gfx_ScaledSprite_NoClip:ROM
+	XREF _gfx_SwapDraw:ROM
+	XREF _gfx_SetDraw:ROM
+	XREF _gfx_ZeroScreen:ROM
+	XREF _gfx_SetPalette:ROM
+	XREF _gfx_SetColor:ROM
+	XREF _gfx_End:ROM
+	XREF _gfx_Begin:ROM
+	XREF _memset:ROM
+	XREF _memcpy:ROM
+	XREF _srandom:ROM
+	XREF _random:ROM
+	XREF __idivs:ROM
+	XREF __imulu:ROM
+	XREF __iremu:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XREF __icmpzero:ROM
+	XREF __case8:ROM
+	XREF __imul_b:ROM
+	XDEF _tick
+	XDEF _refresh
+	XDEF _main
+	XDEF _buf2
+	END
