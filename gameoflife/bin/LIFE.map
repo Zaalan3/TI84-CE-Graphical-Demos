@@ -1,0 +1,54 @@
+Segment  Base   Top    High   Length
+-------- ------ ------ ------ -------
+icon     D1A882 D1A994           112h
+launcher D1A994 D1A9EC            58h
+libs     D1A9EC D1AA25            39h
+startup  D1AA25 D1AA64            3Fh
+cleanup  D1AA64 D1AA78            14h
+exit     D1AA78 D1AA7E             6h
+code     D1AA7E D1B31D           89Fh
+data     D1B31D D1B34F            32h
+strsect  D1B34F D1B34F             0h
+text     D1B34F D1B34F             0h
+bss      D031F6 D036A6 D13FD6    4B0h
+header   D1A87F D1A882             3h
+
+Label                       Value
+-------------------------   ------
+_os_DisableHomeTextBuffer = D1AA7E
+_os_EnableHomeTextBuffer  = D1AA90
+_srandom                  = D1AAA2
+__setstate                = D1AAA9
+_random                   = D1AAB9
+__state                   = D1B31D
+__case8                   = 000124
+__frameset                = D1AB10
+__imul_b                  = 000158
+__imul_b                  = 000150
+_memcpy                   = 0000A4
+__iremu                   = 000170
+__icmpzero                = 000138
+__setflag                 = 000218
+__findlibload             = D1A994
+__program_icon            = D1A887
+__program_description     = D1A989
+__ccleanup                = D1AA64
+_errno                    = D008DC
+_init                     = D1A882
+_exit                     = D1AA7A
+__exit                    = D1AA53
+__exitsp                  = D1AA53
+__errsp                   = D1AA53
+_tick                     = D1AC37
+_randomize                = D1AB85
+_main                     = D1AB1E
+_buf2                     = D031F6
+_screen                   = D1AE6B
+_buf1                     = D1AE6D
+_gfx_Begin                = D1A9FF
+_gfx_End                  = D1AA03
+_gfx_SetDraw              = D1AA07
+_gfx_SwapDraw             = D1AA0B
+_gfx_ScaledSprite_NoClip  = D1AA0F
+_gfx_ZeroScreen           = D1AA13
+_kb_Scan                  = D1AA21

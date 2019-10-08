@@ -1,0 +1,604 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optsize -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\MAIN.C"
+	.assume ADL=1
+	SEGMENT BSS
+_buf2:
+	DS	1200
+;    1	/*
+;    2	 *--------------------------------------
+;    3	 * Program Name: Game of Life
+;    4	 * Author: Zaalane
+;    5	 * License:
+;    6	 * Description: Test Implementation of the Game of Life
+;    7	 *--------------------------------------
+;    8	*/
+;    9	
+;   10	/* Keep these headers */
+;   11	#include <stdbool.h>
+;   12	#include <stddef.h>
+;   13	#include <stdint.h>
+;   14	#include <tice.h>
+;   15	
+;   16	/* Standard headers (recommended) */
+;   17	#include <math.h>
+;   18	#include <stdio.h>
+;   19	#include <stdlib.h>
+;   20	#include <string.h>
+;   21	
+;   22	#include <graphx.h>
+;   23	#include <keypadc.h> 
+;   24	
+;   25	void randomize(void); 
+;   26	void tick(void); 
+;   27	
+;   28	#define W 40 
+;   29	#define H 30
+;   30	
+;   31	extern gfx_sprite_t screen;
+;   32	extern uint8_t buf1[H][W]; 
+;   33	uint8_t buf2[H][W]; 
+	SEGMENT CODE
+;   34	
+;   35	#define DENSITY 15
+;   36	
+;   37	#define COLOR_ALIVE 0xFF
+;   38	#define COLOR_BORN  0x87
+;   39	#define COLOR_DEAD  0x00
+;   40	#define COLOR_DIED  0xC0
+;   41	
+;   42	#define UNDER_POP 1
+;   43	#define OVER_POP 4
+;   44	#define BIRTH_POP 3
+;   45	
+;   46	void main() {	
+_main:
+;   47		int i; 
+;   48		srandom(rtc_Time()); 
+	LD	A,(15925319)
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	LD	BC,(15925316)
+	PUSH	BC
+	CALL	_srandom
+	POP	BC
+	POP	BC
+;   49		
+;   50	    gfx_Begin();
+	CALL	_gfx_Begin
+;   51		gfx_ZeroScreen(); 
+	CALL	_gfx_ZeroScreen
+;   52	    gfx_SetDrawBuffer(); 
+	LD	BC,1
+	PUSH	BC
+	CALL	_gfx_SetDraw
+	POP	BC
+;   53		
+;   54		randomize();
+	CALL	_randomize
+;   55		
+;   56		kb_Scan();
+	CALL	_kb_Scan
+;   57		while(!(kb_Data[6] & kb_Clear)) {
+	JR	L_0
+L_1:
+;   58			gfx_ZeroScreen();
+	CALL	_gfx_ZeroScreen
+;   59			gfx_ScaledSprite_NoClip(&screen,0,0,8,8);	
+	LD	BC,8
+	PUSH	BC
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	PUSH	BC
+	LD	BC,_screen
+	PUSH	BC
+	CALL	_gfx_ScaledSprite_NoClip
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;   60			gfx_SwapDraw(); 
+	CALL	_gfx_SwapDraw
+;   61			
+;   62			tick();
+	CALL	_tick
+;   63			
+;   64			kb_Scan(); 
+	CALL	_kb_Scan
+;   65		} 
+L_0:
+	LD	A,(16056348)
+	AND	A,64
+	JR	Z,L_1
+;   66	    gfx_End();
+	CALL	_gfx_End
+;   67	}
+	RET	
+
+
+;**************************** _main ***************************
+;Name                         Addr/Register   Size   Type
+;_gfx_End                            IMPORT  -----   function
+;_tick                               IMPORT  -----   function
+;_gfx_SwapDraw                       IMPORT  -----   function
+;_screen                             IMPORT      3   variable
+;_gfx_ScaledSprite_NoClip            IMPORT  -----   function
+;_kb_Scan                            IMPORT  -----   function
+;_randomize                          IMPORT  -----   function
+;_gfx_SetDraw                        IMPORT  -----   function
+;_gfx_ZeroScreen                     IMPORT  -----   function
+;_gfx_Begin                          IMPORT  -----   function
+;_srandom                            IMPORT  -----   function
+
+
+; Stack Frame Size: 6 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   68	
+;   69	void randomize() { 
+_randomize:
+	LD	HL,-18
+	CALL	__frameset
+;   70		int x,y;
+;   71		for(x = 0; x < W; x++) { 
+	LD	BC,0
+	LD	(IX+-3),BC
+	JR	L_13
+L_11:
+;   72			for(y = 0; y < H;y++) { 
+	LD	BC,0
+	LD	(IX+-6),BC
+	JR	L_10
+L_8:
+;   73				if ( randInt(0,99) < DENSITY )  
+	CALL	_random
+	LD	BC,100
+	CALL	__iremu
+	LD	BC,15
+	OR	A,A
+	SBC	HL,BC
+	JR	NC,L_7
+;   74					buf1[y][x] = 0xFF; 
+	LD	HL,(IX+-6)
+	LD	BC,(IX+-3)
+	LD	A,40
+	CALL	__imul_b
+	LD	(IX+-15),BC	; spill
+	LD	BC,_buf1
+	LD	(IX+-18),BC	; spill
+	LD	BC,(IX+-15)	; unspill
+	LD	(IX+-15),BC	; spill
+	LD	BC,(IX+-18)	; unspill
+	ADD	HL,BC
+	LD	BC,(IX+-15)	; unspill
+	ADD	HL,BC
+	LD	(HL),255
+;   75				else 
+	JR	L_9
+L_7:
+;   76					buf1[y][x] = 0;
+	LD	HL,(IX+-6)
+	LD	BC,(IX+-3)
+	LD	A,40
+	CALL	__imul_b
+	LD	(IX+-9),BC	; spill
+	LD	BC,_buf1
+	LD	(IX+-12),BC	; spill
+	LD	BC,(IX+-9)	; unspill
+	LD	(IX+-9),BC	; spill
+	LD	BC,(IX+-12)	; unspill
+	ADD	HL,BC
+	LD	BC,(IX+-9)	; unspill
+	ADD	HL,BC
+	LD	(HL),0
+;   77			}
+L_9:
+	LD	BC,(IX+-6)
+	INC	BC
+	LD	(IX+-6),BC
+L_10:
+	LD	BC,30
+	LD	HL,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	JP	M,L_8
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;   78		}
+L_13:
+	LD	BC,40
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_11
+;   79	} 
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _randomize ***************************
+;Name                         Addr/Register   Size   Type
+;_buf1                               IMPORT   1200   variable
+;_random                             IMPORT  -----   function
+;y                                     IX-6      3   variable
+;x                                     IX-3      3   variable
+
+
+; Stack Frame Size: 24 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   80	
+;   81	void tick() {
+_tick:
+	LD	HL,-39
+	CALL	__frameset
+;   82		
+;   83		int i,j; 
+;   84		int x,y; 
+;   85		int imin,imax,jmin,jmax;
+;   86		
+;   87		for(x = 0; x < W; x++) {
+	LD	BC,0
+	LD	(IX+-3),BC
+	JR	L_52
+L_50:
+;   88			
+;   89			switch(x) { 
+	LD	HL,(IX+-3)
+	CALL	__case8
+L__6:
+	DW	2
+	DB	0
+	DW24	L_16	
+
+	DB	39
+	DW24	L_17	
+
+	DW24	L_18	
+
+;   90				case 0: 
+L_16:
+;   91					imin = 0;
+	LD	BC,0
+	LD	(IX+-24),BC
+;   92					imax = 1;
+	LD	BC,1
+	LD	(IX+-27),BC
+;   93					break; 
+	JR	L_49
+;   94				case 39: 
+L_17:
+;   95					imin = -1;
+	LD	BC,16777215
+	LD	(IX+-24),BC
+;   96					imax = 0;
+	LD	BC,0
+	LD	(IX+-27),BC
+;   97					break;
+	JR	L_49
+;   98				default: 
+L_18:
+;   99					imin = -1;
+	LD	BC,16777215
+	LD	(IX+-24),BC
+;  100					imax = 1;
+	LD	BC,1
+	LD	(IX+-27),BC
+;  101					break;
+;  102			}
+L_49:
+;  103			
+;  104			for(y = 0; y < H;y++) { 
+	LD	BC,0
+	LD	(IX+-9),BC
+	JR	L_48
+L_46:
+;  105				int living = 0; 
+	LD	BC,0
+	LD	(IX+-15),BC
+;  106				 
+;  107				switch(y) { 
+	LD	HL,(IX+-9)
+	CALL	__case8
+L__7:
+	DW	2
+	DB	0
+	DW24	L_20	
+
+	DB	29
+	DW24	L_21	
+
+	DW24	L_22	
+
+;  108					case 0: 
+L_20:
+;  109						jmin = 0;
+	LD	(IX+-21),BC
+;  110						jmax = 1;
+	LD	BC,1
+	LD	(IX+-30),BC
+;  111						break; 
+	JR	L_36
+;  112					case 29: 
+L_21:
+;  113						jmin = -1;
+	LD	BC,16777215
+	LD	(IX+-21),BC
+;  114						jmax = 0;
+	LD	BC,0
+	LD	(IX+-30),BC
+;  115						break;
+	JR	L_36
+;  116					default: 
+L_22:
+;  117						jmin = -1;
+	LD	BC,16777215
+	LD	(IX+-21),BC
+;  118						jmax = 1;
+	LD	BC,1
+	LD	(IX+-30),BC
+;  119						break;
+;  120				} 
+L_36:
+;  121				
+;  122				for (i = imin; i <= imax; i++ ) {
+	LD	BC,(IX+-24)
+	LD	(IX+-18),BC
+	JR	L_35
+L_33:
+;  123					for(j = jmin; j <= jmax; j++) {
+	LD	BC,(IX+-21)
+	LD	(IX+-12),BC
+	JR	L_32
+L_30:
+;  124						if((buf1[y+j][x+i]==COLOR_ALIVE || buf1[y+j][x+i]==COLOR_BORN) && !(i==0 && j==0))
+	LD	BC,(IX+-12)
+	LD	HL,(IX+-9)
+	ADD	HL,BC
+	LD	A,40
+	CALL	__imul_b
+	LD	BC,_buf1
+	ADD	HL,BC
+	LD	(IX+-39),HL
+	LD	BC,(IX+-18)
+	LD	HL,(IX+-3)
+	ADD	HL,BC
+	LD	BC,(IX+-39)
+	ADD	HL,BC
+	LD	(IX+-36),HL
+	LD	A,(HL)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	LD	BC,255
+	SBC	HL,BC
+	JR	Z,L_27
+	LD	HL,(IX+-36)
+	LD	A,(HL)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	LD	BC,135
+	SBC	HL,BC
+	JR	NZ,L_31
+L_27:
+	LD	HL,(IX+-18)
+	CALL	__icmpzero
+	JR	NZ,L_29
+	LD	HL,(IX+-12)
+	CALL	__icmpzero
+	JR	Z,L_31
+L_29:
+;  125							living++;
+	LD	BC,(IX+-15)
+	INC	BC
+	LD	(IX+-15),BC
+;  126					}	
+L_31:
+	LD	BC,(IX+-12)
+	INC	BC
+	LD	(IX+-12),BC
+L_32:
+	LD	BC,(IX+-12)
+	LD	HL,(IX+-30)
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_30
+	LD	BC,(IX+-18)
+	INC	BC
+	LD	(IX+-18),BC
+;  127				}
+L_35:
+	LD	BC,(IX+-18)
+	LD	HL,(IX+-27)
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_33
+;  128				
+;  129				if((buf1[y][x]==COLOR_ALIVE || buf1[y][x]==COLOR_BORN)) { 
+	LD	HL,(IX+-9)
+	LD	A,40
+	CALL	__imul_b
+	LD	(IX+-6),HL
+	LD	BC,_buf1
+	ADD	HL,BC
+	LD	BC,(IX+-3)
+	ADD	HL,BC
+	LD	(IX+-33),HL
+	LD	A,(HL)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	LD	BC,255
+	SBC	HL,BC
+	JR	Z,L_43
+	LD	HL,(IX+-33)
+	LD	A,(HL)
+	UEXT	HL
+	LD	L,A
+	OR	A,A
+	LD	BC,135
+	SBC	HL,BC
+	JR	NZ,L_44
+L_43:
+;  130					if(living <= UNDER_POP || living >= OVER_POP)
+	LD	BC,(IX+-15)
+	LD	HL,1
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	P,L_39
+	LD	BC,4
+	LD	HL,(IX+-15)
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_40
+L_39:
+;  131						buf2[y][x] = COLOR_DIED; 
+	LD	HL,(IX+-6)
+	LD	BC,(IX+-3)
+	LD	DE,_buf2
+	ADD	HL,DE
+	ADD	HL,BC
+	LD	(HL),192
+;  132					else 
+	JR	L_47
+L_40:
+;  133						buf2[y][x] = COLOR_ALIVE;
+	LD	HL,(IX+-6)
+	LD	BC,(IX+-3)
+	LD	DE,_buf2
+	ADD	HL,DE
+	ADD	HL,BC
+	LD	(HL),255
+;  134				} 
+;  135				else 
+	JR	L_47
+L_44:
+;  136				{ 
+;  137					if( living == BIRTH_POP ) 
+	LD	BC,3
+	LD	HL,(IX+-15)
+	OR	A,A
+	SBC	HL,BC
+	JR	NZ,L_42
+;  138						buf2[y][x] = COLOR_BORN;
+	LD	HL,(IX+-6)
+	LD	BC,(IX+-3)
+	LD	DE,_buf2
+	ADD	HL,DE
+	ADD	HL,BC
+	LD	(HL),135
+;  139					else 
+	JR	L_47
+L_42:
+;  140						buf2[y][x] = COLOR_DEAD;
+	LD	HL,(IX+-6)
+	LD	BC,(IX+-3)
+	LD	DE,_buf2
+	ADD	HL,DE
+	ADD	HL,BC
+	LD	(HL),0
+;  141				} 
+;  142				
+;  143			}
+L_47:
+	LD	BC,(IX+-9)
+	INC	BC
+	LD	(IX+-9),BC
+L_48:
+	LD	BC,30
+	LD	HL,(IX+-9)
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_46
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;  144		}
+L_52:
+	LD	BC,40
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	CALL	__setflag
+	JP	M,L_50
+;  145		
+;  146		memcpy(buf1,buf2,W*H);
+	LD	BC,1200
+	PUSH	BC
+	LD	BC,_buf2
+	PUSH	BC
+	LD	BC,_buf1
+	PUSH	BC
+	CALL	_memcpy
+	POP	BC
+	POP	BC
+	POP	BC
+;  147		
+;  148	} 
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _tick ***************************
+;Name                         Addr/Register   Size   Type
+;_memcpy                             IMPORT  -----   function
+;_buf2                               STATIC   1200   variable
+;_buf1                               IMPORT   1200   variable
+;G_0                                  IX-39      3   variable
+;G_1                                  IX-36      3   variable
+;G_3                                  IX-33      3   variable
+;jmax                                 IX-30      3   variable
+;imax                                 IX-27      3   variable
+;imin                                 IX-24      3   variable
+;jmin                                 IX-21      3   variable
+;i                                    IX-18      3   variable
+;living                               IX-15      3   variable
+;j                                    IX-12      3   variable
+;y                                     IX-9      3   variable
+;G_4                                   IX-6      3   variable
+;x                                     IX-3      3   variable
+
+
+; Stack Frame Size: 45 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _buf1:ROM
+	XREF _screen:ROM
+	XREF _kb_Scan:ROM
+	XREF _gfx_ScaledSprite_NoClip:ROM
+	XREF _gfx_SwapDraw:ROM
+	XREF _gfx_SetDraw:ROM
+	XREF _gfx_ZeroScreen:ROM
+	XREF _gfx_End:ROM
+	XREF _gfx_Begin:ROM
+	XREF _memcpy:ROM
+	XREF _srandom:ROM
+	XREF _random:ROM
+	XREF __iremu:ROM
+	XREF __frameset:ROM
+	XREF __setflag:ROM
+	XREF __icmpzero:ROM
+	XREF __case8:ROM
+	XREF __imul_b:ROM
+	XDEF _tick
+	XDEF _randomize
+	XDEF _main
+	XDEF _buf2
+	END
