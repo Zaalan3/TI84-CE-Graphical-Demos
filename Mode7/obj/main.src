@@ -1,0 +1,576 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optspeed -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\MAIN.C"
+	.assume ADL=1
+	SEGMENT BSS
+_sintable:
+	DS	192
+_xstart:
+	DS	9216
+_canvas_data:
+	DS	3842
+	SEGMENT DATA
+_canvas:
+	DW24	_canvas_data
+;    1	/* Keep these headers */
+;    2	#include <stdbool.h>
+;    3	#include <stddef.h>
+;    4	#include <stdint.h>
+;    5	#include <tice.h>
+;    6	
+;    7	/* Standard headers (recommended) */
+;    8	#include <math.h>
+;    9	#include <stdio.h>
+;   10	#include <stdlib.h>
+;   11	#include <string.h>
+;   12	
+;   13	#include <graphx.h>
+;   14	#include <keypadc.h>
+;   15	
+;   16	#include "gfx/pal.h" 
+;   17	#include "gfx/tileset.h" 
+;   18	
+;   19	extern void drawFloor(uint8_t angle,int x,int y,int z,gfx_sprite_t* texture); 
+;   20	void generateTables(void); 
+;   21	
+;   22	int sintable[64];
+;   23	int xstart[64][48]; 
+;   24	
+;   25	gfx_UninitedSprite(canvas,80,48); 
+	SEGMENT CODE
+;   26	
+;   27	void main(void) {
+_main:
+	LD	HL,-15
+	CALL	__frameset
+;   28		int i,x,y,z;
+;   29		gfx_sprite_t* tex;
+;   30		
+;   31		//init 
+;   32		gfx_Begin(); 
+	CALL	_gfx_Begin
+;   33		gfx_SetPalette(pal_pal,sizeof_pal_pal,0); 
+	LD	BC,0
+	PUSH	BC
+	LD	BC,512
+	PUSH	BC
+	LD	BC,_pal_pal
+	PUSH	BC
+	CALL	_gfx_SetPalette
+	POP	BC
+	POP	BC
+	POP	BC
+;   34		gfx_ZeroScreen(); 
+	CALL	_gfx_ZeroScreen
+;   35		gfx_SetDrawBuffer(); 
+	LD	BC,1
+	PUSH	BC
+	CALL	_gfx_SetDraw
+	POP	BC
+;   36		
+;   37		gfx_SetTextBGColor(0); 
+	LD	BC,0
+	PUSH	BC
+	CALL	_gfx_SetTextBGColor
+	POP	BC
+;   38		gfx_SetTextTransparentColor(0);
+	LD	BC,0
+	PUSH	BC
+	CALL	_gfx_SetTextTransparentColor
+	POP	BC
+;   39		gfx_SetTextFGColor(0xFF); 
+	LD	BC,255
+	PUSH	BC
+	CALL	_gfx_SetTextFGColor
+	POP	BC
+;   40		
+;   41		canvas->width = 80; 
+	LD	IY,(_canvas)
+	LD	(IY+0),80
+;   42		canvas->height = 48; 
+	LD	IY,(_canvas)
+	LD	(IY+1),48
+;   43	   
+;   44		generateTables(); 
+	CALL	_generateTables
+;   45		
+;   46		i = 0; 
+	LD	BC,0
+	LD	(IX+-3),BC
+;   47		x = 0; 
+	LD	(IX+-12),BC
+;   48		y = 0;
+	LD	(IX+-9),BC
+;   49		z = 8; 
+	LD	BC,8
+	LD	(IX+-6),BC
+;   50		tex = tileset_tile_1;
+	LD	BC,_tileset_tile_1_data
+	LD	(IX+-15),BC
+;   51		
+;   52		// main loop 
+;   53		kb_Scan();
+	CALL	_kb_Scan
+;   54		while(!kb_IsDown(kb_KeyClear)){
+	JR	L_14
+L_15:
+;   55			drawFloor(i,x,y,z,tex); 
+	LD	BC,(IX+-15)
+	PUSH	BC
+	LD	BC,(IX+-6)
+	PUSH	BC
+	LD	BC,(IX+-9)
+	PUSH	BC
+	LD	BC,(IX+-12)
+	PUSH	BC
+	LD	C,(IX+-3)
+	LD	B,0
+	PUSH	BC
+	CALL	_drawFloor
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;   56			gfx_ZeroScreen();
+	CALL	_gfx_ZeroScreen
+;   57			gfx_SetTextXY(10,10); 
+	LD	BC,10
+	PUSH	BC
+	PUSH	BC
+	CALL	_gfx_SetTextXY
+	POP	BC
+	POP	BC
+;   58			gfx_PrintUInt(i,1); 
+	LD	BC,1
+	PUSH	BC
+	LD	BC,(IX+-3)
+	PUSH	BC
+	CALL	_gfx_PrintUInt
+	POP	BC
+	POP	BC
+;   59			gfx_PrintChar(' '); 
+	LD	BC,32
+	PUSH	BC
+	CALL	_gfx_PrintChar
+	POP	BC
+;   60			gfx_PrintUInt(z,1);
+	LD	BC,1
+	PUSH	BC
+	LD	BC,(IX+-6)
+	PUSH	BC
+	CALL	_gfx_PrintUInt
+	POP	BC
+	POP	BC
+;   61			
+;   62			gfx_ScaledSprite_NoClip(canvas,0,240-96,4,2);
+	LD	BC,2
+	PUSH	BC
+	LD	BC,4
+	PUSH	BC
+	LD	BC,144
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	LD	BC,(_canvas)
+	PUSH	BC
+	CALL	_gfx_ScaledSprite_NoClip
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;   63			
+;   64			gfx_SwapDraw(); 
+	CALL	_gfx_SwapDraw
+;   65			
+;   66			if(kb_IsDown(kb_KeyUp)) { 
+	LD	A,(16056350)
+	AND	A,8
+	JR	Z,L_2
+;   67				x += 2*sintable[(i+16)&63];
+	LD	IY,(IX+-3)
+	LD	DE,(IX+-12)
+	LEA	HL,IY+16
+	LD	A,L
+	AND	A,63
+	UEXT	HL
+	LD	L,A
+	LD	BC,HL
+	LD	HL,BC
+	ADD	HL,HL
+	ADD	HL,HL
+	OR	A,A
+	SBC	HL,BC
+	LD	BC,_sintable
+	ADD	HL,BC
+	LD	HL,(HL)
+	ADD	HL,HL
+	ADD	HL,DE
+	LD	(IX+-12),HL
+;   68				y += 2*sintable[i]; 
+	LD	HL,(IX+-3)
+	ADD	HL,HL
+	ADD	HL,HL
+	OR	A,A
+	LD	BC,(IX+-3)
+	SBC	HL,BC
+	LD	BC,(IX+-9)
+	LD	DE,_sintable
+	ADD	HL,DE
+	LD	HL,(HL)
+	ADD	HL,HL
+	ADD	HL,BC
+	LD	(IX+-9),HL
+;   69			}
+L_2:
+;   70			if(kb_IsDown(kb_KeyDown)) { 
+	LD	A,(16056350)
+	AND	A,1
+	JR	Z,L_4
+;   71				x -= 2*sintable[(i+16)&63];
+	LD	IY,(IX+-3)
+	LEA	HL,IY+16
+	LD	A,L
+	AND	A,63
+	UEXT	HL
+	LD	L,A
+	LD	BC,HL
+	LD	HL,BC
+	ADD	HL,HL
+	ADD	HL,HL
+	OR	A,A
+	SBC	HL,BC
+	LD	BC,_sintable
+	ADD	HL,BC
+	LD	HL,(HL)
+	ADD	HL,HL
+	LD	BC,HL
+	LD	HL,(IX+-12)
+	OR	A,A
+	SBC	HL,BC
+	LD	(IX+-12),HL
+;   72				y -= 2*sintable[i]; 
+	LD	HL,(IX+-3)
+	ADD	HL,HL
+	ADD	HL,HL
+	OR	A,A
+	LD	BC,(IX+-3)
+	SBC	HL,BC
+	LD	BC,_sintable
+	ADD	HL,BC
+	LD	HL,(HL)
+	ADD	HL,HL
+	LD	BC,HL
+	LD	HL,(IX+-9)
+	OR	A,A
+	SBC	HL,BC
+	LD	(IX+-9),HL
+;   73			}
+L_4:
+;   74			if(kb_IsDown(kb_KeyLeft)) { 
+	LD	A,(16056350)
+	AND	A,2
+	JR	Z,L_6
+;   75				i = (i+63)&63; 
+	LD	IY,(IX+-3)
+	LEA	HL,IY+63
+	LD	A,L
+	AND	A,63
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-3),HL
+;   76			} 
+L_6:
+;   77			if(kb_IsDown(kb_KeyRight)) { 
+	LD	A,(16056350)
+	AND	A,4
+	JR	Z,L_9
+;   78				i = (i+1)&63; 
+	LD	HL,(IX+-3)
+	INC	HL
+	LD	A,L
+	AND	A,63
+	UEXT	HL
+	LD	L,A
+	LD	(IX+-3),HL
+;   79			}
+L_9:
+;   80			if(kb_IsDown(kb_KeyAdd)) { 
+	LD	A,(16056348)
+	AND	A,2
+	JR	Z,L_12
+;   81				z++; 
+	LD	BC,(IX+-6)
+	INC	BC
+	LD	(IX+-6),BC
+;   82			} 
+L_12:
+;   83			if(kb_IsDown(kb_KeySub)) { 
+	LD	A,(16056348)
+	AND	A,4
+	JR	Z,L_13
+;   84				z--; 
+	LD	BC,(IX+-6)
+	DEC	BC
+	LD	(IX+-6),BC
+;   85			}
+L_13:
+;   86			
+;   87			kb_Scan();
+	CALL	_kb_Scan
+;   88		}; 
+L_14:
+	LD	A,(16056348)
+	AND	A,64
+	JR	Z,L_15
+;   89	   
+;   90		// cleanup
+;   91		gfx_End(); 
+	CALL	_gfx_End
+;   92	}
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _main ***************************
+;Name                         Addr/Register   Size   Type
+;_gfx_End                            IMPORT  -----   function
+;_sintable                           STATIC    192   variable
+;_gfx_SwapDraw                       IMPORT  -----   function
+;_gfx_ScaledSprite_NoClip            IMPORT  -----   function
+;_gfx_PrintChar                      IMPORT  -----   function
+;_gfx_PrintUInt                      IMPORT  -----   function
+;_gfx_SetTextXY                      IMPORT  -----   function
+;_drawFloor                          IMPORT  -----   function
+;_kb_Scan                            IMPORT  -----   function
+;_tileset_tile_1_data                IMPORT  unknown variable
+;_generateTables                     IMPORT  -----   function
+;_canvas                             STATIC      3   variable
+;_gfx_SetTextFGColor                 IMPORT  -----   function
+;_gfx_SetTextTransparentColor        IMPORT  -----   function
+;_gfx_SetTextBGColor                 IMPORT  -----   function
+;_gfx_SetDraw                        IMPORT  -----   function
+;_gfx_ZeroScreen                     IMPORT  -----   function
+;_pal_pal                            IMPORT    512   variable
+;_gfx_SetPalette                     IMPORT  -----   function
+;_gfx_Begin                          IMPORT  -----   function
+;tex                                  IX-15      3   variable
+;x                                    IX-12      3   variable
+;y                                     IX-9      3   variable
+;z                                     IX-6      3   variable
+;i                                     IX-3      3   variable
+
+
+; Stack Frame Size: 21 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+;   93	
+;   94	
+;   95	 
+;   96	void generateTables() { 
+_generateTables:
+	LD	HL,-18
+	CALL	__frameset
+;   97		int i,j; 
+;   98	 	
+;   99		for(i = 0;i < 64;i++) {
+	LD	BC,0
+	LD	(IX+-3),BC
+	JR	L_21
+L_19:
+;  100			sintable[i] = 256.0*sin((M_PI/32.0) * i);
+	LD	BC,(IX+-3)
+	CALL	__itol
+	CALL	__ltof
+	LD	HL,13176795
+	LD	E,61
+	CALL	__fmul
+	LD	DE,BC
+	LD	C,A
+	LD	B,0
+	PUSH	BC
+	PUSH	DE
+	CALL	_sin
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,8388608
+	LD	E,67
+	CALL	__fmul
+	CALL	__ftol
+	LD	HL,(IX+-3)
+	LD	DE,(IX+-3)
+	ADD	HL,HL
+	ADD	HL,HL
+	OR	A,A
+	SBC	HL,DE
+	LD	DE,_sintable
+	ADD	HL,DE
+	LD	(HL),BC
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;  101		}
+L_21:
+	LD	BC,64
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	JP	M,L_19
+;  102		
+;  103		for(i = 0;i < 48;i++) { 
+	LD	BC,0
+	LD	(IX+-3),BC
+	JR	L_29
+L_27:
+;  104			for(j = 0;j < 64;j++) {
+	LD	BC,0
+	LD	(IX+-6),BC
+	JR	L_26
+L_24:
+;  105				xstart[j][i] = (150.375*sintable[j]) / (i+12);
+	LD	HL,(IX+-6)
+	LD	BC,(IX+-6)
+	LD	IY,(IX+-3)
+	LD	(IX+-9),BC	; spill
+	LD	BC,(IX+-6)
+	LD	(IX+-12),BC	; spill
+	LD	BC,(IX+-9)	; unspill
+	LD	(IX+-9),BC	; spill
+	LD	BC,(IX+-3)
+	LD	(IX+-15),BC	; spill
+	LD	BC,(IX+-9)	; unspill
+	ADD	HL,HL
+	ADD	HL,HL
+	OR	A,A
+	SBC	HL,BC
+	LD	DE,_sintable
+	ADD	HL,DE
+	LD	BC,(HL)
+	LD	HL,1466368
+	CALL	__itol
+	CALL	__ltof
+	LD	E,67
+	CALL	__fmul
+	LD	(IX+-18),BC
+	LEA	BC,IY+12
+	LD	H,A
+	CALL	__itol
+	CALL	__ltof
+	LD	E,A
+	LD	A,H
+	LD	HL,BC
+	LD	BC,(IX+-18)
+	CALL	__fdiv
+	CALL	__ftol
+	LD	HL,(IX+-6)
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	LD	(IX+-9),BC	; spill
+	LD	BC,(IX+-12)	; unspill
+	ADD	HL,BC
+	LD	BC,(IX+-9)	; unspill
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	LD	DE,_xstart
+	ADD	HL,DE
+	LD	DE,HL
+	LD	HL,(IX+-3)
+	ADD	HL,HL
+	ADD	HL,HL
+	OR	A,A
+	LD	(IX+-9),BC	; spill
+	LD	BC,(IX+-15)	; unspill
+	SBC	HL,BC
+	LD	BC,(IX+-9)	; unspill
+	ADD	HL,DE
+	LD	(HL),BC
+	LD	BC,(IX+-6)
+	INC	BC
+	LD	(IX+-6),BC
+;  106			} 
+L_26:
+	LD	BC,64
+	LD	HL,(IX+-6)
+	OR	A,A
+	SBC	HL,BC
+	JP	M,L__11
+	JP	PE,L_24
+	JR	L__12
+L__11:
+	JP	PO,L_24
+L__12:
+	LD	BC,(IX+-3)
+	INC	BC
+	LD	(IX+-3),BC
+;  107		} 
+L_29:
+	LD	BC,48
+	LD	HL,(IX+-3)
+	OR	A,A
+	SBC	HL,BC
+	JP	M,L__13
+	JP	PE,L_27
+	JR	L__14
+L__13:
+	JP	PO,L_27
+L__14:
+;  108	
+;  109	} 
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _generateTables ***************************
+;Name                         Addr/Register   Size   Type
+;_xstart                             STATIC   9216   variable
+;_sintable                           STATIC    192   variable
+;_sin                                IMPORT  -----   function
+;j                                     IX-6      3   variable
+;i                                     IX-3      3   variable
+
+
+; Stack Frame Size: 24 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _drawFloor:ROM
+	XREF _tileset_tile_1_data:ROM
+	XREF _pal_pal:ROM
+	XREF _kb_Scan:ROM
+	XREF _gfx_ScaledSprite_NoClip:ROM
+	XREF _gfx_SetTextTransparentColor:ROM
+	XREF _gfx_SetTextBGColor:ROM
+	XREF _gfx_SetTextFGColor:ROM
+	XREF _gfx_SetTextXY:ROM
+	XREF _gfx_PrintUInt:ROM
+	XREF _gfx_PrintChar:ROM
+	XREF _gfx_SwapDraw:ROM
+	XREF _gfx_SetDraw:ROM
+	XREF _gfx_ZeroScreen:ROM
+	XREF _gfx_SetPalette:ROM
+	XREF _gfx_End:ROM
+	XREF _gfx_Begin:ROM
+	XREF _sin:ROM
+	XREF __fmul:ROM
+	XREF __fdiv:ROM
+	XREF __ftol:ROM
+	XREF __ltof:ROM
+	XREF __itol:ROM
+	XREF __frameset:ROM
+	XDEF _generateTables
+	XDEF _main
+	XDEF _canvas
+	XDEF _canvas_data
+	XDEF _xstart
+	XDEF _sintable
+	END

@@ -1,0 +1,463 @@
+; Zilog eZ80 ANSI C Compiler Release 3.4
+; -optspeed -noreduceopt -nomodsect -peephole -globalopt
+; -localcse -const=ROM 
+	FILE	"SRC\MAIN.C"
+	.assume ADL=1
+	SEGMENT BSS
+_canvas_data:
+	DS	19202
+	SEGMENT DATA
+_canvas:
+	DW24	_canvas_data
+;    1	/* Keep these headers */
+;    2	#include <stdbool.h>
+;    3	#include <stddef.h>
+;    4	#include <stdint.h>
+;    5	#include <tice.h>
+;    6	
+;    7	/* Standard headers (recommended) */
+;    8	#include <math.h>
+;    9	#include <stdio.h>
+;   10	#include <stdlib.h>
+;   11	#include <string.h>
+;   12	
+;   13	#include <graphx.h>
+;   14	#include <keypadc.h>
+;   15	
+;   16	#include "gfx/pal.h" 
+;   17	#include "gfx/tileset.h" 
+;   18	
+;   19	typedef struct { 
+;   20		int x; 
+;   21		int y; 
+;   22	} point;
+;   23	
+;   24	extern void drawTri(point p0,point p1,point p2,gfx_sprite_t* texture); 
+;   25	
+;   26	gfx_UninitedSprite(canvas,160,120); 
+	SEGMENT CODE
+;   27	
+;   28	void main(void) {
+_main:
+	LD	HL,-49
+	CALL	__frameset
+;   29		point p0,p1,p2; 
+;   30		double angle = 0.0;
+	LD	BC,0
+	LD	(IX+-4),BC
+	XOR	A,A
+	LD	(IX+-1),A
+;   31		gfx_Begin(); 
+	CALL	_gfx_Begin
+;   32		gfx_SetPalette(pal_pal,sizeof_pal_pal,0); 
+	LD	BC,0
+	PUSH	BC
+	LD	BC,512
+	PUSH	BC
+	LD	BC,_pal_pal
+	PUSH	BC
+	CALL	_gfx_SetPalette
+	POP	BC
+	POP	BC
+	POP	BC
+;   33		gfx_SetDrawBuffer();
+	LD	BC,1
+	PUSH	BC
+	CALL	_gfx_SetDraw
+	POP	BC
+;   34		gfx_SetColor(0xFF); 
+	LD	BC,255
+	PUSH	BC
+	CALL	_gfx_SetColor
+	POP	BC
+;   35		
+;   36		canvas->width = 160; 
+	LD	IY,(_canvas)
+	LD	(IY+0),160
+;   37		canvas->height = 120; 
+	LD	IY,(_canvas)
+	LD	(IY+1),120
+;   38		
+;   39		while(!os_GetCSC()) {
+	JR	L_0
+L_1:
+;   40			p0.x = 80 + 20*cos(angle) - 20*sin(angle); 
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	CALL	_cos
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,10485760
+	LD	E,65
+	CALL	__fmul
+	LD	HL,10485760
+	LD	E,66
+	CALL	__fadd
+	LD	(IX+-45),BC
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	LD	(IX+-46),A
+	CALL	_sin
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,10485760
+	LD	E,65
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-45)
+	LD	A,(IX+-46)
+	CALL	__fsub
+	CALL	__ftol
+	LD	(IX+-22),BC
+;   41			p0.y = 60 + 20*sin(angle) + 20*cos(angle);
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	CALL	_sin
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,10485760
+	LD	E,65
+	CALL	__fmul
+	LD	HL,7340032
+	LD	E,66
+	CALL	__fadd
+	LD	(IX+-41),BC
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	LD	(IX+-42),A
+	CALL	_cos
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,10485760
+	LD	E,65
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-41)
+	LD	A,(IX+-42)
+	CALL	__fadd
+	CALL	__ftol
+	LD	(IX+-19),BC
+;   42			p1.x = 80 + 40*cos(angle) - 25*sin(angle); 
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	CALL	_cos
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,2097152
+	LD	E,66
+	CALL	__fmul
+	LD	HL,10485760
+	LD	E,66
+	CALL	__fadd
+	LD	(IX+-37),BC
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	LD	(IX+-38),A
+	CALL	_sin
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,13107200
+	LD	E,65
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-37)
+	LD	A,(IX+-38)
+	CALL	__fsub
+	CALL	__ftol
+	LD	(IX+-10),BC
+;   43			p1.y = 60 + 40*sin(angle) + 25*cos(angle);
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	CALL	_sin
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,2097152
+	LD	E,66
+	CALL	__fmul
+	LD	HL,7340032
+	LD	E,66
+	CALL	__fadd
+	LD	(IX+-33),BC
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	LD	(IX+-34),A
+	CALL	_cos
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,13107200
+	LD	E,65
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-33)
+	LD	A,(IX+-34)
+	CALL	__fadd
+	CALL	__ftol
+	LD	(IX+-7),BC
+;   44			p2.x = 80 + 20*cos(angle) - 30*sin(angle); 
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	CALL	_cos
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,10485760
+	LD	E,65
+	CALL	__fmul
+	LD	HL,10485760
+	LD	E,66
+	CALL	__fadd
+	LD	(IX+-29),BC
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	LD	(IX+-30),A
+	CALL	_sin
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,15728640
+	LD	E,65
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-29)
+	LD	A,(IX+-30)
+	CALL	__fsub
+	CALL	__ftol
+	LD	(IX+-16),BC
+;   45			p2.y = 60 + 20*sin(angle) + 30*cos(angle);
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	CALL	_sin
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,10485760
+	LD	E,65
+	CALL	__fmul
+	LD	HL,7340032
+	LD	E,66
+	CALL	__fadd
+	LD	(IX+-25),BC
+	LD	C,(IX+-1)
+	LD	B,0
+	PUSH	BC
+	LD	BC,(IX+-4)
+	PUSH	BC
+	LD	(IX+-26),A
+	CALL	_cos
+	POP	BC
+	POP	BC
+	LD	A,E
+	LD	BC,HL
+	LD	HL,15728640
+	LD	E,65
+	CALL	__fmul
+	LD	E,A
+	LD	HL,BC
+	LD	BC,(IX+-25)
+	LD	A,(IX+-26)
+	CALL	__fadd
+	CALL	__ftol
+	LD	(IX+-13),BC
+	LD	(IX+-49),BC
+;   46			
+;   47			gfx_ZeroScreen(); 
+	CALL	_gfx_ZeroScreen
+	LD	BC,(IX+-49)
+	OR	A,A
+;   48			drawTri(p0,p1,p2,tileset_tile_1);
+	SBC	HL,HL
+	LD	DE,_tileset_tile_1_data
+	PUSH	DE
+	PUSH	BC
+	PUSH	BC
+	ADD	HL,SP
+	LD	DE,HL
+	LEA	HL,IX+-16
+	LD	BC,6
+	LDIR	
+	PUSH	BC
+	PUSH	BC
+	OR	A,A
+	SBC	HL,HL
+	ADD	HL,SP
+	LD	DE,HL
+	LEA	HL,IX+-10
+	LD	BC,6
+	LDIR	
+	PUSH	BC
+	PUSH	BC
+	OR	A,A
+	SBC	HL,HL
+	ADD	HL,SP
+	LD	DE,HL
+	LEA	HL,IX+-22
+	LD	BC,6
+	LDIR	
+	CALL	_drawTri
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;   49			gfx_ScaledSprite_NoClip(canvas,0,0,2,2);
+	LD	BC,2
+	PUSH	BC
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	PUSH	BC
+	LD	BC,(_canvas)
+	PUSH	BC
+	CALL	_gfx_ScaledSprite_NoClip
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+	POP	BC
+;   50			gfx_SwapDraw();
+	CALL	_gfx_SwapDraw
+;   51			memset(canvas+2,0,160*120);
+	LD	BC,19200
+	PUSH	BC
+	LD	BC,0
+	PUSH	BC
+	LD	IY,(_canvas)
+	LEA	BC,IY+6
+	PUSH	BC
+	CALL	_memset
+	POP	BC
+	POP	BC
+	POP	BC
+;   52			angle += M_PI/40.0;
+	LD	BC,(IX+-4)
+	LD	A,(IX+-1)
+	LD	HL,10541436
+	LD	E,61
+	CALL	__fadd
+	LD	(IX+-4),BC
+	LD	(IX+-1),A
+;   53		}
+L_0:
+	CALL	_os_GetCSC
+	OR	A,A
+	JR	Z,L_1
+;   54		
+;   55		gfx_End();
+	CALL	_gfx_End
+;   56	} 
+	LD	SP,IX
+	POP	IX
+	RET	
+
+
+;**************************** _main ***************************
+;Name                         Addr/Register   Size   Type
+;_gfx_End                            IMPORT  -----   function
+;_os_GetCSC                          IMPORT  -----   function
+;_memset                             IMPORT  -----   function
+;_gfx_SwapDraw                       IMPORT  -----   function
+;_gfx_ScaledSprite_NoClip            IMPORT  -----   function
+;_tileset_tile_1_data                IMPORT  unknown variable
+;_drawTri                            IMPORT  -----   function
+;_gfx_ZeroScreen                     IMPORT  -----   function
+;_sin                                IMPORT  -----   function
+;_cos                                IMPORT  -----   function
+;_canvas                             STATIC      3   variable
+;_gfx_SetColor                       IMPORT  -----   function
+;_gfx_SetDraw                        IMPORT  -----   function
+;_pal_pal                            IMPORT    512   variable
+;_gfx_SetPalette                     IMPORT  -----   function
+;_gfx_Begin                          IMPORT  -----   function
+;p0                                   IX-22      6   variable
+;p2                                   IX-16      6   variable
+;p1                                   IX-10      6   variable
+;angle                                 IX-4      4   variable
+
+
+; Stack Frame Size: 55 (bytes)
+;       Spill Code: 0 (instruction)
+
+
+	XREF _drawTri:ROM
+	XREF _tileset_tile_1_data:ROM
+	XREF _pal_pal:ROM
+	XREF _gfx_ScaledSprite_NoClip:ROM
+	XREF _gfx_SwapDraw:ROM
+	XREF _gfx_SetDraw:ROM
+	XREF _gfx_ZeroScreen:ROM
+	XREF _gfx_SetPalette:ROM
+	XREF _gfx_SetColor:ROM
+	XREF _gfx_End:ROM
+	XREF _gfx_Begin:ROM
+	XREF _memset:ROM
+	XREF _sin:ROM
+	XREF _cos:ROM
+	XREF _os_GetCSC:ROM
+	XREF __fadd:ROM
+	XREF __fsub:ROM
+	XREF __fmul:ROM
+	XREF __ftol:ROM
+	XREF __frameset:ROM
+	XDEF _main
+	XDEF _canvas
+	XDEF _canvas_data
+	END

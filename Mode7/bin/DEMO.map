@@ -1,0 +1,63 @@
+Segment  Base   Top    High   Length
+-------- ------ ------ ------ -------
+icon     D1A882 D1A994           112h
+launcher D1A994 D1A9EC            58h
+libs     D1A9EC D1AA41            55h
+startup  D1AA41 D1AA80            3Fh
+cleanup  D1AA80 D1AA94            14h
+exit     D1AA94 D1AA9A             6h
+code     D1AA9A D1AF2C           492h
+data     D1AF2C D1B35B           42Fh
+strsect  D1B35B D1B35B             0h
+text     D1B35B D1B35B             0h
+bss      D031F6 D065B8 D13FD6   33C2h
+header   D1A87F D1A882             3h
+
+Label                          Value
+----------------------------   ------
+_sin                         = 022118
+_os_DisableHomeTextBuffer    = D1AA9A
+_os_EnableHomeTextBuffer     = D1AAAC
+__ltof                       = 000284
+__frameset                   = D1AABE
+__fmul                       = 000288
+__imuls                      = 000154
+__itol                       = 000194
+__idivs                      = 00013C
+__fdiv                       = 000278
+__ftol                       = 00027C
+__findlibload                = D1A994
+__program_icon               = D1A887
+__program_description        = D1A989
+__ccleanup                   = D1AA80
+_errno                       = D008DC
+_init                        = D1A882
+_exit                        = D1AA96
+__exit                       = D1AA6F
+__exitsp                     = D1AA6F
+__errsp                      = D1AA6F
+_pal_pal                     = D1AF4E
+_tileset_tiles_data          = D1B352
+_tileset_tile_1_data         = D1B250
+_tileset_tile_0_data         = D1B14E
+_generateTables              = D1ACCA
+_main                        = D1AACC
+_canvas                      = D1B358
+_canvas_data                 = D056B6
+_xstart                      = D032B6
+_sintable                    = D031F6
+_drawFloor                   = D1AE1A
+_gfx_Begin                   = D1A9FF
+_gfx_End                     = D1AA03
+_gfx_SetPalette              = D1AA07
+_gfx_SetDraw                 = D1AA0B
+_gfx_SwapDraw                = D1AA0F
+_gfx_PrintChar               = D1AA13
+_gfx_PrintUInt               = D1AA17
+_gfx_SetTextXY               = D1AA1B
+_gfx_SetTextBGColor          = D1AA1F
+_gfx_SetTextFGColor          = D1AA23
+_gfx_SetTextTransparentColor = D1AA27
+_gfx_ScaledSprite_NoClip     = D1AA2B
+_gfx_ZeroScreen              = D1AA2F
+_kb_Scan                     = D1AA3D
