@@ -1,193 +1,230 @@
-;C output edited for speed
-
 xdef _drawFloor 
 
 xref __frameset
 xref __idivs
 xref __imuls
-xref _canvas
-xref _tileset_tile_1_data
-xref _tileset_tile_0_data
+xref _canvas_data
 xref _xstart
 
+sin	equ ix-3
+cos	equ ix-6
+rs 	equ ix-9
+rc	equ ix-12 
+u 	equ ix-15
+v 	equ ix-18 
+
+;angle ix+6
+;x	ix+9 
+;y ix+12 
+;z ix+15 
+;texture ix+18
 ;  112	void drawFloor(uint8_t angle,int x,int y,int z,gfx_sprite_t* texture) {
 _drawFloor:
-	LD	HL,-29
-	CALL	__frameset
-;  113		int u,v,du,dv;
-;  114		int* s;
-;  115		int* c;
-;  116		int* rs;
-;  117		int* rc;
-;  118		int offset;
-;  119		uint8_t i,j; 
-;  120		
-;  121		offset = 0;
-	UEXT	HL
-	LD	(IX+-20),HL
-	
-	LD	BC,(IX+18) 
-	INC BC
-	INC BC
-	LD (IX+18),BC
+	ld	hl,-18
+	di
+	call __frameset
+	ld	bc,_xstart
 ;  122		s = xstart[angle]; 
-	LD	BC,_xstart
-	LD	D,48*3
-	LD	A,(IX+6)
-	LD	L,A
-	LD	H,D
-	MLT HL
-	ADD	HL,BC
-	LD	(IX+-8),HL
+	ld	d,48*3
+	ld	a,(ix+6)
+	ld	l,a
+	ld	h,d
+	mlt hl
+	add	hl,bc
+	ld	(sin),hl
 ;  123		c = xstart[(angle+16)&63]; 
-	ADD A,16 
-	AND	A,63
-	LD	L,A
-	LD	H,D
-	MLT HL 
-	ADD	HL,BC
-	LD	(IX+-11),HL
+	add a,16 
+	and	a,63
+	ld	l,a
+	ld	h,d
+	mlt hl 
+	add	hl,bc
+	ld	(cos),hl
 ;  124		rs = xstart[(angle+59)&63]; 
-	ADD A,59-16
-	AND	A,63
-	LD	L,A
-	LD 	H,D
-	MLT HL
-	ADD	HL,BC
-	LD	(IX+-14),HL
+	add a,59-16
+	and	a,63
+	ld	l,a
+	ld 	h,d
+	mlt hl
+	add	hl,bc
+	ld	(rs),hl
 ;  125		rc = xstart[(angle+59+16)&63]; 
-	ADD A,16
-	AND A,63
-	LD	L,A
-	LD	H,D 
-	MLT HL
-	ADD	HL,BC
-	LD	(IX+-17),HL
-;  126		
-;  127		for(i = 0; i < 48;i++) {  
-	LD	(IX+-1),48
-L_42:
-	LD	IY,(IX+15)
-;  128			u = *(rc++)*z + x; 
-	LD	HL,(IX+-17)
-	LD	BC,(HL) 
-	INC HL 
-	INC HL 
-	INC HL
-	LD	(IX+-17),HL 
-	LEA	HL,IY+0
-	CALL	__imuls
-	LD	BC,(IX+9)
-	ADD	HL,BC
-	LD	(IX+-23),HL
-;  129			v = *(rs++)*z + y; 
-	LD	HL,(IX+-14)
-	LD	BC,(HL)
-	INC HL
-	INC HL 
-	INC HL 
-	LD	(IX+-14),HL
-	LEA	HL,IY+0
-	CALL	__imuls
-	LD	BC,(IX+12)
-	ADD	HL,BC
-	LD	(IX+-5),HL
-;  130			du = *(s++)*z / -80; 
-	LD	HL,(IX+-8)
-	LD	BC,(HL)
-	INC HL 
-	INC HL 
-	INC HL
-	LD	(IX+-8),HL 
-	LEA	HL,IY+0
-	CALL	__imuls
-	LD	BC,-80
-	CALL	__idivs
-	LD	(IX+-29),HL
-;  131			dv = *(c++)*z / 80;
-	LD	HL,(IX+-11)
-	LD	BC,(HL)
-	INC HL 
-	INC HL 
-	INC HL
-	LD (IX+-11),HL
-	LEA	HL,IY+0
-	CALL	__imuls
-	LD	BC,80
-	CALL	__idivs
-	LD	(IX+-26),HL
-;  132			
-;  133			for(j = 80;j > 0;j--) {
-	LD	(IX+-2),80
-	LD	BC,(IX+18)
-	LD	IY,(_canvas)
-L_39:
-;  134				canvas->data[offset++] = tileset_tile_1->data[((v>>8)&0x0F)*16
-;  135					+ ((u>>8)&0x0F)]; 
-	LD	A,(IX+-4)
-	AND	A,15
-	LD	L,A
-	LD	H,16 
-	MLT HL
-	EX	DE,HL
-	LD	A,(IX+-22)
-	AND	A,15
-	UEXT	HL
-	LD	L,A
-	ADD	HL,DE
-	ADD	HL,BC
-	LD	A,(HL)
-	LEA	HL,IY+2
-	LD	DE,(IX+-20)
-	ADD	HL,DE
-	LD	(HL),A
-	INC	DE
-	LD	(IX+-20),DE
-;  136				u += du;
-	LD	DE,(IX+-29)
-	LD	HL,(IX+-23)
-	ADD	HL,DE
-	LD	(IX+-23),HL
-;  137				v += dv;
-	LD	DE,(IX+-26)
-	LD	HL,(IX+-5)
-	ADD	HL,DE
-	LD	(IX+-5),HL
+	add a,16
+	and a,63
+	ld	l,a
+	ld	h,d 
+	mlt hl
+	add	hl,bc
+	ld	(rc),hl
 	
-;  138			} 
-L_41:
-	DEC	(IX+-2)
-	JR	NZ,L_39
+	ld iyh,48
+	ld hl,_canvas_data+2
+	push hl
+yloop:
+	ld a,(ix+15) 
+;  128			u = *(rc++)*z*80 + x; 
+	ld hl,(rc) 
+	ld de,(hl) 
+	inc hl 
+	inc hl 
+	inc hl 
+	ld (rc),hl 
+	 
+	ex de,hl
+	call mulHL_A
 	
-;  139		} 
-L_44:
-	DEC	(IX+-1)
-	JR	NZ,L_42
-;  140		
-;  141	} 
-	LD	SP,IX
-	POP	IX
-	RET	
+	add hl,hl 
+	add hl,hl 
+	add hl,hl 
+	add hl,hl 
+	ld de,hl 
+	add hl,hl 
+	add hl,hl 
+	add hl,de 
+	ld de,(ix+9) 
+	add hl,de 
+	ld (u),hl 
+;  130			du = *(s++)*-z;
+	ld hl,(sin) 
+	ld de,(hl) 
+	inc hl 
+	inc hl 
+	inc hl  
+	ld (sin),hl
+	uext hl 
+	sbc hl,de 
+	
+	call mulHL_A
+	
+	ex de,hl ; de' = du 
+;  129			v = *(rs++)*z*80 + y;
+	exx 
+	ld hl,(rs) 
+	ld de,(hl) 
+	inc hl 
+	inc hl 
+	inc hl 
+	ld (rs),hl 
+	
+	ex de,hl 
+	call mulHL_A
+	
+	add hl,hl 
+	add hl,hl 
+	add hl,hl 
+	add hl,hl 
+	ld de,hl 
+	add hl,hl 
+	add hl,hl 
+	add hl,de 
+	ld de,(ix+12) 
+	add hl,de 
+	ld (v),hl
+;  131			dv = *(c++)*z;
+	ld hl,(cos) 
+	ld de,(hl) 
+	inc hl 
+	inc hl 
+	inc hl 
+	ld (cos),hl 
+	
+	ex de,hl
+	call mulHL_A
+	
+	push hl
+	exx 
+	pop bc ; bc' = dv
+	exx
 
+	ld iyl,80 
+	ld bc,(ix+18)
+	pop de
+xloop:
+;draw pixel 
+	ld a,(v+2)
+	and a,15
+	ld l,a 
+	ld h,16 
+	mlt hl 
+	ld a,(u+2) 
+	and a,15 
+	add a,l
+	ld l,a 
+	add hl,bc 
+	ld a,(hl) 
+	ld (de),a 
+	inc de
 
-;**************************** _drawFloor ***************************
-;Name                         Addr/Register   Size   Type
-;_canvas                             STATIC      3   variable
-;_tileset_tile_1_data                IMPORT  unknown variable
-;_xstart                             STATIC   9216   variable
-;du                                   IX-29      3   variable
-;dv                                   IX-26      3   variable
-;u                                    IX-23      3   variable
-;offset                               IX-20      3   variable
-;rc                                   IX-17      3   variable
-;rs                                   IX-14      3   variable
-;c                                    IX-11      3   variable
-;s                                     IX-8      3   variable
-;v                                     IX-5      3   variable
-;j                                     IX-2      1   variable
-;i                                     IX-1      1   variable
-;texture							  IX+18		 3   parameter
-;z                                    IX+15      3   parameter
-;y                                    IX+12      3   parameter
-;x                                     IX+9      3   parameter
-;angle                                 IX+6      1   parameter
+;	u += du , v += dv 
+	exx 
+	ld hl,(u) 
+	add hl,de 
+	ld (u),hl 
+	ld hl,(v) 
+	add hl,bc 
+	ld (v),hl
+	exx
+	
+	dec iyl 
+	jr nz,xloop 
+	
+	push de
+	dec iyh 
+	jr nz,yloop 
+	
+	ld sp,ix 
+	pop ix 
+	ret 
+
+mulHL_A: 
+	ld de,0 
+	rrca 
+	jr nc,$l1
+	ex de,hl 
+	add hl,de 
+	ex de,hl 
+$l1:add hl,hl 
+	rrca 
+	jr nc,$l2
+	ex de,hl 
+	add hl,de 
+	ex de,hl 
+$l2:add hl,hl 
+	rrca 
+	jr nc,$l3
+	ex de,hl 
+	add hl,de 
+	ex de,hl 
+$l3:add hl,hl 
+	rrca 
+	jr nc,$l4
+	ex de,hl 
+	add hl,de 
+	ex de,hl 
+$l4:add hl,hl 
+	rrca 
+	jr nc,$l5
+	ex de,hl 
+	add hl,de 
+	ex de,hl 
+$l5:add hl,hl 
+	rrca 
+	jr nc,$l6
+	ex de,hl 
+	add hl,de 
+	ex de,hl 
+$l6:add hl,hl 
+	rrca 
+	jr nc,$l7
+	ex de,hl 
+	add hl,de 
+	ex de,hl 
+$l7:add hl,hl 
+	rrca 
+	jr nc,$l8
+	ex de,hl 
+	add hl,de 
+	ex de,hl 
+$l8:
+	ex de,hl 
+	ret 

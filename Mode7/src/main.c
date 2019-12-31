@@ -16,7 +16,7 @@
 #include "gfx/pal.h" 
 #include "gfx/tileset.h" 
 
-extern void drawFloor(uint8_t angle,int x,int y,int z,gfx_sprite_t* texture); 
+extern void drawFloor(uint8_t angle,int x,int y,uint8_t z,uint8_t* texture); 
 void generateTables(void); 
 
 int sintable[64];
@@ -25,7 +25,8 @@ int xstart[64][48];
 gfx_UninitedSprite(canvas,80,48); 
 
 void main(void) {
-	int i,x,y,z;
+	int i,x,y;
+	uint8_t z;
 	gfx_sprite_t* tex;
 	
 	//init 
@@ -46,30 +47,34 @@ void main(void) {
 	i = 0; 
 	x = 0; 
 	y = 0;
-	z = 8; 
+	z = 3; 
 	tex = tileset_tile_1;
 	
 	// main loop 
 	kb_Scan();
 	while(!kb_IsDown(kb_KeyClear)){
-		drawFloor(i,x,y,z,tex); 
+		timer_Control = TIMER1_DISABLE;
+		timer_1_Counter = 0;
+		timer_Control = TIMER1_ENABLE | TIMER1_CPU | TIMER1_UP;
+		drawFloor(i,x,y,z,tex->data); 
+		timer_Control = TIMER1_DISABLE;
+		
+
 		gfx_ZeroScreen();
 		gfx_SetTextXY(10,10); 
-		gfx_PrintUInt(i,1); 
-		gfx_PrintChar(' '); 
-		gfx_PrintUInt(z,1);
-		
+		gfx_PrintUInt(timer_1_Counter,1); 
+
 		gfx_ScaledSprite_NoClip(canvas,0,240-96,4,2);
 		
 		gfx_SwapDraw(); 
 		
 		if(kb_IsDown(kb_KeyUp)) { 
-			x += 2*sintable[(i+16)&63];
-			y += 2*sintable[i]; 
+			x += 512*sintable[(i+16)&63];
+			y += 512*sintable[i]; 
 		}
 		if(kb_IsDown(kb_KeyDown)) { 
-			x -= 2*sintable[(i+16)&63];
-			y -= 2*sintable[i]; 
+			x -= 512*sintable[(i+16)&63];
+			y -= 512*sintable[i]; 
 		}
 		if(kb_IsDown(kb_KeyLeft)) { 
 			i = (i+63)&63; 
@@ -102,7 +107,7 @@ void generateTables() {
 	
 	for(i = 0;i < 48;i++) { 
 		for(j = 0;j < 64;j++) {
-			xstart[j][i] = (150.375*sintable[j]) / (i+12);
+			xstart[j][i] = (150.37*256*sintable[j]) / (80*(i+12));
 		} 
 	} 
 
