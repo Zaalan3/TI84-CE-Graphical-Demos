@@ -1,8 +1,6 @@
 xdef _drawFloor 
 
 xref __frameset
-xref __idivs
-xref __imuls
 xref _canvas_data
 xref _xstart
 
@@ -10,22 +8,21 @@ sin	equ ix-3
 cos	equ ix-6
 rs 	equ ix-9
 rc	equ ix-12 
-u 	equ ix-15
-v 	equ ix-18 
-
+u	equ ix-15 
+v	equ ix-18
 ;angle ix+6
 ;x	ix+9 
 ;y ix+12 
 ;z ix+15 
 ;texture ix+18
-;  112	void drawFloor(uint8_t angle,int x,int y,int z,gfx_sprite_t* texture) {
+;  112	void drawFloor(uint8_t angle,int x,int y,int z,uint8_t* texture) {
 _drawFloor:
 	ld	hl,-18
 	di
 	call __frameset
 	ld	bc,_xstart
+	ld	d,60*3
 ;  122		s = xstart[angle]; 
-	ld	d,48*3
 	ld	a,(ix+6)
 	ld	l,a
 	ld	h,d
@@ -57,10 +54,12 @@ _drawFloor:
 	add	hl,bc
 	ld	(rc),hl
 	
-	ld iyh,48
+	
 	ld hl,_canvas_data+2
 	push hl
+	ld a,60 
 yloop:
+	ex af,af'	
 	ld a,(ix+15) 
 ;  128			u = *(rc++)*z*80 + x; 
 	ld hl,(rc) 
@@ -134,19 +133,22 @@ yloop:
 	push hl
 	exx 
 	pop bc ; bc' = dv
+	ld l,80
 	exx
-
-	ld iyl,80 
+	
 	ld bc,(ix+18)
 	pop de
+	push ix 
+	ld iy,(v)
+	ld ix,(u)
 xloop:
 ;draw pixel 
-	ld a,(v+2)
+	ld a,iyh
 	and a,15
 	ld l,a 
 	ld h,16 
 	mlt hl 
-	ld a,(u+2) 
+	ld a,ixh 
 	and a,15 
 	add a,l
 	ld l,a 
@@ -156,75 +158,84 @@ xloop:
 	inc de
 
 ;	u += du , v += dv 
-	exx 
-	ld hl,(u) 
-	add hl,de 
-	ld (u),hl 
-	ld hl,(v) 
-	add hl,bc 
-	ld (v),hl
+	exx  
+	add ix,de 
+	add iy,bc 
+	dec l
 	exx
+
+	jr nz,xloop
 	
-	dec iyl 
-	jr nz,xloop 
-	
+	pop ix 
 	push de
-	dec iyh 
+	ex af,af' 
+	dec a
 	jr nz,yloop 
 	
 	ld sp,ix 
 	pop ix 
 	ret 
 
+;HL*A/256
 mulHL_A: 
-	ld de,0 
-	rrca 
-	jr nc,$l1
 	ex de,hl 
+	uext hl 
+	sbc hl,de 
+	jp p,$neg 
+	ex de,hl
+	ld d,l 
+	ld e,a 
+	mlt de 
+	ld e,d 
+	push hl
+	inc sp 
+	pop hl 
+	dec sp 
+	ld b,l 
+	ld c,a 
+	mlt bc 
+	ld l,a
+	mlt hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	ld h,0 
+	ld d,h
 	add hl,de 
-	ex de,hl 
-$l1:add hl,hl 
-	rrca 
-	jr nc,$l2
-	ex de,hl 
+	add hl,bc 
+	ret 
+$neg: 
+	ld d,l 
+	ld e,a 
+	mlt de 
+	ld e,d 
+	push hl
+	inc sp 
+	pop hl 
+	dec sp 
+	ld b,l 
+	ld c,a 
+	mlt bc 
+	ld l,a
+	mlt hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	add hl,hl
+	ld h,0 
+	ld d,h 
 	add hl,de 
+	add hl,bc
 	ex de,hl 
-$l2:add hl,hl 
-	rrca 
-	jr nc,$l3
-	ex de,hl 
-	add hl,de 
-	ex de,hl 
-$l3:add hl,hl 
-	rrca 
-	jr nc,$l4
-	ex de,hl 
-	add hl,de 
-	ex de,hl 
-$l4:add hl,hl 
-	rrca 
-	jr nc,$l5
-	ex de,hl 
-	add hl,de 
-	ex de,hl 
-$l5:add hl,hl 
-	rrca 
-	jr nc,$l6
-	ex de,hl 
-	add hl,de 
-	ex de,hl 
-$l6:add hl,hl 
-	rrca 
-	jr nc,$l7
-	ex de,hl 
-	add hl,de 
-	ex de,hl 
-$l7:add hl,hl 
-	rrca 
-	jr nc,$l8
-	ex de,hl 
-	add hl,de 
-	ex de,hl 
-$l8:
-	ex de,hl 
+	uext hl 
+	sbc hl,de 
 	ret 

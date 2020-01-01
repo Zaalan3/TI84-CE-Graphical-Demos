@@ -20,9 +20,9 @@ extern void drawFloor(uint8_t angle,int x,int y,uint8_t z,uint8_t* texture);
 void generateTables(void); 
 
 int sintable[64];
-int xstart[64][48]; 
+int xstart[64][60]; 
 
-gfx_UninitedSprite(canvas,80,48); 
+gfx_UninitedSprite(canvas,80,60); 
 
 void main(void) {
 	int i,x,y;
@@ -40,14 +40,14 @@ void main(void) {
 	gfx_SetTextFGColor(0xFF); 
 	
 	canvas->width = 80; 
-	canvas->height = 48; 
+	canvas->height = 60; 
    
 	generateTables(); 
 	
 	i = 0; 
 	x = 0; 
 	y = 0;
-	z = 3; 
+	z = 8; 
 	tex = tileset_tile_1;
 	
 	// main loop 
@@ -64,17 +64,17 @@ void main(void) {
 		gfx_SetTextXY(10,10); 
 		gfx_PrintUInt(timer_1_Counter,1); 
 
-		gfx_ScaledSprite_NoClip(canvas,0,240-96,4,2);
+		gfx_ScaledSprite_NoClip(canvas,0,240-120,4,2);
 		
 		gfx_SwapDraw(); 
 		
 		if(kb_IsDown(kb_KeyUp)) { 
-			x += 512*sintable[(i+16)&63];
-			y += 512*sintable[i]; 
+			x += 2*sintable[(i+16)&63];
+			y += 2*sintable[i]; 
 		}
 		if(kb_IsDown(kb_KeyDown)) { 
-			x -= 512*sintable[(i+16)&63];
-			y -= 512*sintable[i]; 
+			x -= 2*sintable[(i+16)&63];
+			y -= 2*sintable[i]; 
 		}
 		if(kb_IsDown(kb_KeyLeft)) { 
 			i = (i+63)&63; 
@@ -105,9 +105,9 @@ void generateTables() {
 		sintable[i] = 256.0*sin((M_PI/32.0) * i);
 	}
 	
-	for(i = 0;i < 48;i++) { 
+	for(i = 0;i < 60;i++) { 
 		for(j = 0;j < 64;j++) {
-			xstart[j][i] = (150.37*256*sintable[j]) / (80*(i+12));
+			xstart[j][i] = (150.37*256*sintable[j]) / (80*(i+1));
 		} 
 	} 
 

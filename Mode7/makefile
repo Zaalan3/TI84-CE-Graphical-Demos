@@ -8,7 +8,7 @@
 NAME        ?= FLOOR
 COMPRESSED  ?= NO
 ICON        ?= iconc.png
-DESCRIPTION ?= "C SDK Demo"
+DESCRIPTION ?= "Floorcasting Demo"
 
 # ----------------------------
 # Other Options (Advanced)

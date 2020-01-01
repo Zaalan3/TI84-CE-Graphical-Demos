@@ -26,5 +26,5 @@ __program_icon:
  db 0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh,0FFh
 
 __program_description:
- db "C SDK Demo",0
+ db "Floorcasting Demo",0
 __program_description_end:

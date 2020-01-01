@@ -7,9 +7,9 @@
 _sintable:
 	DS	192
 _xstart:
-	DS	9216
+	DS	11520
 _canvas_data:
-	DS	3842
+	DS	4802
 	SEGMENT DATA
 _canvas:
 	DW24	_canvas_data
@@ -31,26 +31,27 @@ _canvas:
 ;   16	#include "gfx/pal.h" 
 ;   17	#include "gfx/tileset.h" 
 ;   18	
-;   19	extern void drawFloor(uint8_t angle,int x,int y,int z,gfx_sprite_t* texture); 
+;   19	extern void drawFloor(uint8_t angle,int x,int y,uint8_t z,uint8_t* texture); 
 ;   20	void generateTables(void); 
 ;   21	
 ;   22	int sintable[64];
-;   23	int xstart[64][48]; 
+;   23	int xstart[64][60]; 
 ;   24	
-;   25	gfx_UninitedSprite(canvas,80,48); 
+;   25	gfx_UninitedSprite(canvas,80,60); 
 	SEGMENT CODE
 ;   26	
 ;   27	void main(void) {
 _main:
-	LD	HL,-15
+	LD	HL,-13
 	CALL	__frameset
-;   28		int i,x,y,z;
-;   29		gfx_sprite_t* tex;
-;   30		
-;   31		//init 
-;   32		gfx_Begin(); 
+;   28		int i,x,y;
+;   29		uint8_t z;
+;   30		gfx_sprite_t* tex;
+;   31		
+;   32		//init 
+;   33		gfx_Begin(); 
 	CALL	_gfx_Begin
-;   33		gfx_SetPalette(pal_pal,sizeof_pal_pal,0); 
+;   34		gfx_SetPalette(pal_pal,sizeof_pal_pal,0); 
 	LD	BC,0
 	PUSH	BC
 	LD	BC,512
@@ -61,68 +62,83 @@ _main:
 	POP	BC
 	POP	BC
 	POP	BC
-;   34		gfx_ZeroScreen(); 
+;   35		gfx_ZeroScreen(); 
 	CALL	_gfx_ZeroScreen
-;   35		gfx_SetDrawBuffer(); 
+;   36		gfx_SetDrawBuffer(); 
 	LD	BC,1
 	PUSH	BC
 	CALL	_gfx_SetDraw
 	POP	BC
-;   36		
-;   37		gfx_SetTextBGColor(0); 
+;   37		
+;   38		gfx_SetTextBGColor(0); 
 	LD	BC,0
 	PUSH	BC
 	CALL	_gfx_SetTextBGColor
 	POP	BC
-;   38		gfx_SetTextTransparentColor(0);
+;   39		gfx_SetTextTransparentColor(0);
 	LD	BC,0
 	PUSH	BC
 	CALL	_gfx_SetTextTransparentColor
 	POP	BC
-;   39		gfx_SetTextFGColor(0xFF); 
+;   40		gfx_SetTextFGColor(0xFF); 
 	LD	BC,255
 	PUSH	BC
 	CALL	_gfx_SetTextFGColor
 	POP	BC
-;   40		
-;   41		canvas->width = 80; 
+;   41		
+;   42		canvas->width = 80; 
 	LD	IY,(_canvas)
 	LD	(IY+0),80
-;   42		canvas->height = 48; 
+;   43		canvas->height = 60; 
 	LD	IY,(_canvas)
-	LD	(IY+1),48
-;   43	   
-;   44		generateTables(); 
+	LD	(IY+1),60
+;   44	   
+;   45		generateTables(); 
 	CALL	_generateTables
-;   45		
-;   46		i = 0; 
+;   46		
+;   47		i = 0; 
 	LD	BC,0
 	LD	(IX+-3),BC
-;   47		x = 0; 
-	LD	(IX+-12),BC
-;   48		y = 0;
-	LD	(IX+-9),BC
-;   49		z = 8; 
-	LD	BC,8
-	LD	(IX+-6),BC
-;   50		tex = tileset_tile_1;
+;   48		x = 0; 
+	LD	(IX+-10),BC
+;   49		y = 0;
+	LD	(IX+-7),BC
+;   50		z = 8; 
+	LD	(IX+-4),8
+;   51		tex = tileset_tile_1;
 	LD	BC,_tileset_tile_1_data
-	LD	(IX+-15),BC
-;   51		
-;   52		// main loop 
-;   53		kb_Scan();
+	LD	(IX+-13),BC
+;   52		
+;   53		// main loop 
+;   54		kb_Scan();
 	CALL	_kb_Scan
-;   54		while(!kb_IsDown(kb_KeyClear)){
+;   55		while(!kb_IsDown(kb_KeyClear)){
 	JR	L_14
 L_15:
-;   55			drawFloor(i,x,y,z,tex); 
-	LD	BC,(IX+-15)
+;   56			timer_Control = TIMER1_DISABLE;
+	LD	HL,15859760
+	LD	(HL),0
+	INC	HL
+	LD	(HL),0
+;   57			timer_1_Counter = 0;
+	LD	BC,0
+	LD	(15859712),BC
+	XOR	A,A
+	LD	(15859715),A
+;   58			timer_Control = TIMER1_ENABLE | TIMER1_CPU | TIMER1_UP;
+	LD	HL,15859760
+	LD	(HL),1
+	INC	HL
+	LD	(HL),2
+;   59			drawFloor(i,x,y,z,tex->data); 
+	LD	IY,(IX+-13)
+	PEA	IY+2
+	LD	C,(IX+-4)
+	LD	B,0
 	PUSH	BC
-	LD	BC,(IX+-6)
+	LD	BC,(IX+-7)
 	PUSH	BC
-	LD	BC,(IX+-9)
-	PUSH	BC
-	LD	BC,(IX+-12)
+	LD	BC,(IX+-10)
 	PUSH	BC
 	LD	C,(IX+-3)
 	LD	B,0
@@ -133,43 +149,37 @@ L_15:
 	POP	BC
 	POP	BC
 	POP	BC
-;   56			gfx_ZeroScreen();
+;   60			timer_Control = TIMER1_DISABLE;
+	LD	HL,15859760
+	LD	(HL),0
+	INC	HL
+	LD	(HL),0
+;   61			
+;   62	
+;   63			gfx_ZeroScreen();
 	CALL	_gfx_ZeroScreen
-;   57			gfx_SetTextXY(10,10); 
+;   64			gfx_SetTextXY(10,10); 
 	LD	BC,10
 	PUSH	BC
 	PUSH	BC
 	CALL	_gfx_SetTextXY
 	POP	BC
 	POP	BC
-;   58			gfx_PrintUInt(i,1); 
+;   65			gfx_PrintUInt(timer_1_Counter,1); 
 	LD	BC,1
 	PUSH	BC
-	LD	BC,(IX+-3)
+	LD	BC,(15859712)
 	PUSH	BC
 	CALL	_gfx_PrintUInt
 	POP	BC
 	POP	BC
-;   59			gfx_PrintChar(' '); 
-	LD	BC,32
-	PUSH	BC
-	CALL	_gfx_PrintChar
-	POP	BC
-;   60			gfx_PrintUInt(z,1);
-	LD	BC,1
-	PUSH	BC
-	LD	BC,(IX+-6)
-	PUSH	BC
-	CALL	_gfx_PrintUInt
-	POP	BC
-	POP	BC
-;   61			
-;   62			gfx_ScaledSprite_NoClip(canvas,0,240-96,4,2);
+;   66	
+;   67			gfx_ScaledSprite_NoClip(canvas,0,240-120,4,2);
 	LD	BC,2
 	PUSH	BC
 	LD	BC,4
 	PUSH	BC
-	LD	BC,144
+	LD	BC,120
 	PUSH	BC
 	LD	BC,0
 	PUSH	BC
@@ -181,17 +191,17 @@ L_15:
 	POP	BC
 	POP	BC
 	POP	BC
-;   63			
-;   64			gfx_SwapDraw(); 
+;   68			
+;   69			gfx_SwapDraw(); 
 	CALL	_gfx_SwapDraw
-;   65			
-;   66			if(kb_IsDown(kb_KeyUp)) { 
+;   70			
+;   71			if(kb_IsDown(kb_KeyUp)) { 
 	LD	A,(16056350)
 	AND	A,8
 	JR	Z,L_2
-;   67				x += 2*sintable[(i+16)&63];
+;   72				x += 2*sintable[(i+16)&63];
 	LD	IY,(IX+-3)
-	LD	DE,(IX+-12)
+	LD	DE,(IX+-10)
 	LEA	HL,IY+16
 	LD	A,L
 	AND	A,63
@@ -208,28 +218,28 @@ L_15:
 	LD	HL,(HL)
 	ADD	HL,HL
 	ADD	HL,DE
-	LD	(IX+-12),HL
-;   68				y += 2*sintable[i]; 
+	LD	(IX+-10),HL
+;   73				y += 2*sintable[i]; 
 	LD	HL,(IX+-3)
 	ADD	HL,HL
 	ADD	HL,HL
 	OR	A,A
 	LD	BC,(IX+-3)
 	SBC	HL,BC
-	LD	BC,(IX+-9)
+	LD	BC,(IX+-7)
 	LD	DE,_sintable
 	ADD	HL,DE
 	LD	HL,(HL)
 	ADD	HL,HL
 	ADD	HL,BC
-	LD	(IX+-9),HL
-;   69			}
+	LD	(IX+-7),HL
+;   74			}
 L_2:
-;   70			if(kb_IsDown(kb_KeyDown)) { 
+;   75			if(kb_IsDown(kb_KeyDown)) { 
 	LD	A,(16056350)
 	AND	A,1
 	JR	Z,L_4
-;   71				x -= 2*sintable[(i+16)&63];
+;   76				x -= 2*sintable[(i+16)&63];
 	LD	IY,(IX+-3)
 	LEA	HL,IY+16
 	LD	A,L
@@ -247,11 +257,11 @@ L_2:
 	LD	HL,(HL)
 	ADD	HL,HL
 	LD	BC,HL
-	LD	HL,(IX+-12)
+	LD	HL,(IX+-10)
 	OR	A,A
 	SBC	HL,BC
-	LD	(IX+-12),HL
-;   72				y -= 2*sintable[i]; 
+	LD	(IX+-10),HL
+;   77				y -= 2*sintable[i]; 
 	LD	HL,(IX+-3)
 	ADD	HL,HL
 	ADD	HL,HL
@@ -263,17 +273,17 @@ L_2:
 	LD	HL,(HL)
 	ADD	HL,HL
 	LD	BC,HL
-	LD	HL,(IX+-9)
+	LD	HL,(IX+-7)
 	OR	A,A
 	SBC	HL,BC
-	LD	(IX+-9),HL
-;   73			}
+	LD	(IX+-7),HL
+;   78			}
 L_4:
-;   74			if(kb_IsDown(kb_KeyLeft)) { 
+;   79			if(kb_IsDown(kb_KeyLeft)) { 
 	LD	A,(16056350)
 	AND	A,2
 	JR	Z,L_6
-;   75				i = (i+63)&63; 
+;   80				i = (i+63)&63; 
 	LD	IY,(IX+-3)
 	LEA	HL,IY+63
 	LD	A,L
@@ -281,13 +291,13 @@ L_4:
 	UEXT	HL
 	LD	L,A
 	LD	(IX+-3),HL
-;   76			} 
+;   81			} 
 L_6:
-;   77			if(kb_IsDown(kb_KeyRight)) { 
+;   82			if(kb_IsDown(kb_KeyRight)) { 
 	LD	A,(16056350)
 	AND	A,4
 	JR	Z,L_9
-;   78				i = (i+1)&63; 
+;   83				i = (i+1)&63; 
 	LD	HL,(IX+-3)
 	INC	HL
 	LD	A,L
@@ -295,41 +305,37 @@ L_6:
 	UEXT	HL
 	LD	L,A
 	LD	(IX+-3),HL
-;   79			}
+;   84			}
 L_9:
-;   80			if(kb_IsDown(kb_KeyAdd)) { 
+;   85			if(kb_IsDown(kb_KeyAdd)) { 
 	LD	A,(16056348)
 	AND	A,2
 	JR	Z,L_12
-;   81				z++; 
-	LD	BC,(IX+-6)
-	INC	BC
-	LD	(IX+-6),BC
-;   82			} 
+;   86				z++; 
+	INC	(IX+-4)
+;   87			} 
 L_12:
-;   83			if(kb_IsDown(kb_KeySub)) { 
+;   88			if(kb_IsDown(kb_KeySub)) { 
 	LD	A,(16056348)
 	AND	A,4
 	JR	Z,L_13
-;   84				z--; 
-	LD	BC,(IX+-6)
-	DEC	BC
-	LD	(IX+-6),BC
-;   85			}
+;   89				z--; 
+	DEC	(IX+-4)
+;   90			}
 L_13:
-;   86			
-;   87			kb_Scan();
+;   91			
+;   92			kb_Scan();
 	CALL	_kb_Scan
-;   88		}; 
+;   93		}; 
 L_14:
 	LD	A,(16056348)
 	AND	A,64
 	JR	Z,L_15
-;   89	   
-;   90		// cleanup
-;   91		gfx_End(); 
+;   94	   
+;   95		// cleanup
+;   96		gfx_End(); 
 	CALL	_gfx_End
-;   92	}
+;   97	}
 	LD	SP,IX
 	POP	IX
 	RET	
@@ -341,7 +347,6 @@ L_14:
 ;_sintable                           STATIC    192   variable
 ;_gfx_SwapDraw                       IMPORT  -----   function
 ;_gfx_ScaledSprite_NoClip            IMPORT  -----   function
-;_gfx_PrintChar                      IMPORT  -----   function
 ;_gfx_PrintUInt                      IMPORT  -----   function
 ;_gfx_SetTextXY                      IMPORT  -----   function
 ;_drawFloor                          IMPORT  -----   function
@@ -357,32 +362,32 @@ L_14:
 ;_pal_pal                            IMPORT    512   variable
 ;_gfx_SetPalette                     IMPORT  -----   function
 ;_gfx_Begin                          IMPORT  -----   function
-;tex                                  IX-15      3   variable
-;x                                    IX-12      3   variable
-;y                                     IX-9      3   variable
-;z                                     IX-6      3   variable
+;tex                                  IX-13      3   variable
+;x                                    IX-10      3   variable
+;y                                     IX-7      3   variable
+;z                                     IX-4      1   variable
 ;i                                     IX-3      3   variable
 
 
-; Stack Frame Size: 21 (bytes)
+; Stack Frame Size: 19 (bytes)
 ;       Spill Code: 0 (instruction)
 
 
-;   93	
-;   94	
-;   95	 
-;   96	void generateTables() { 
+;   98	
+;   99	
+;  100	 
+;  101	void generateTables() { 
 _generateTables:
-	LD	HL,-18
+	LD	HL,-28
 	CALL	__frameset
-;   97		int i,j; 
-;   98	 	
-;   99		for(i = 0;i < 64;i++) {
+;  102		int i,j; 
+;  103	 	
+;  104		for(i = 0;i < 64;i++) {
 	LD	BC,0
 	LD	(IX+-3),BC
 	JR	L_21
 L_19:
-;  100			sintable[i] = 256.0*sin((M_PI/32.0) * i);
+;  105			sintable[i] = 256.0*sin((M_PI/32.0) * i);
 	LD	BC,(IX+-3)
 	CALL	__itol
 	CALL	__ltof
@@ -415,69 +420,91 @@ L_19:
 	LD	BC,(IX+-3)
 	INC	BC
 	LD	(IX+-3),BC
-;  101		}
+;  106		}
 L_21:
 	LD	BC,64
 	LD	HL,(IX+-3)
 	OR	A,A
 	SBC	HL,BC
 	JP	M,L_19
-;  102		
-;  103		for(i = 0;i < 48;i++) { 
+;  107		
+;  108		for(i = 0;i < 60;i++) { 
 	LD	BC,0
 	LD	(IX+-3),BC
 	JR	L_29
 L_27:
-;  104			for(j = 0;j < 64;j++) {
+;  109			for(j = 0;j < 64;j++) {
 	LD	BC,0
 	LD	(IX+-6),BC
 	JR	L_26
 L_24:
-;  105				xstart[j][i] = (150.375*sintable[j]) / (i+12);
+;  110				xstart[j][i] = (150.37*256*sintable[j]) / (80*(i+1));
 	LD	HL,(IX+-6)
-	LD	BC,(IX+-6)
-	LD	IY,(IX+-3)
-	LD	(IX+-9),BC	; spill
-	LD	BC,(IX+-6)
-	LD	(IX+-12),BC	; spill
-	LD	BC,(IX+-9)	; unspill
-	LD	(IX+-9),BC	; spill
+	LD	DE,(IX+-6)
 	LD	BC,(IX+-3)
+	LD	(IX+-12),BC	; spill
+	LD	BC,(IX+-6)
 	LD	(IX+-15),BC	; spill
-	LD	BC,(IX+-9)	; unspill
+	LD	BC,(IX+-6)
+	LD	(IX+-18),BC	; spill
+	LD	BC,(IX+-6)
+	LD	(IX+-21),BC	; spill
+	LD	BC,(IX+-3)
+	LD	(IX+-24),BC	; spill
 	ADD	HL,HL
 	ADD	HL,HL
 	OR	A,A
-	SBC	HL,BC
+	SBC	HL,DE
 	LD	DE,_sintable
 	ADD	HL,DE
 	LD	BC,(HL)
-	LD	HL,1466368
+	LD	HL,1466040
 	CALL	__itol
 	CALL	__ltof
-	LD	E,67
+	LD	E,71
 	CALL	__fmul
-	LD	(IX+-18),BC
-	LEA	BC,IY+12
-	LD	H,A
+	LD	(IX+-27),BC
+	LD	(IX+-28),A
+	LD	BC,(IX+-12)	; unspill
+	INC	BC
+	LD	(IX+-12),BC	; spill
+	LD	HL,BC
+	ADD	HL,HL
+	ADD	HL,HL
+	LD	BC,(IX+-12)	; unspill
+	ADD	HL,BC
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	ADD	HL,HL
+	LD	BC,HL
 	CALL	__itol
 	CALL	__ltof
 	LD	E,A
-	LD	A,H
+	LD	A,(IX+-28)
 	LD	HL,BC
-	LD	BC,(IX+-18)
+	LD	BC,(IX+-27)
 	CALL	__fdiv
 	CALL	__ftol
 	LD	HL,(IX+-6)
 	ADD	HL,HL
-	ADD	HL,HL
-	ADD	HL,HL
 	LD	(IX+-9),BC	; spill
-	LD	BC,(IX+-12)	; unspill
+	LD	BC,(IX+-15)	; unspill
 	ADD	HL,BC
 	LD	BC,(IX+-9)	; unspill
 	ADD	HL,HL
 	ADD	HL,HL
+	OR	A,A
+	LD	(IX+-9),BC	; spill
+	LD	BC,(IX+-18)	; unspill
+	SBC	HL,BC
+	LD	BC,(IX+-9)	; unspill
+	ADD	HL,HL
+	ADD	HL,HL
+	LD	(IX+-9),BC	; spill
+	LD	BC,(IX+-21)	; unspill
+	ADD	HL,BC
+	LD	BC,(IX+-9)	; unspill
 	ADD	HL,HL
 	ADD	HL,HL
 	LD	DE,_xstart
@@ -488,7 +515,7 @@ L_24:
 	ADD	HL,HL
 	OR	A,A
 	LD	(IX+-9),BC	; spill
-	LD	BC,(IX+-15)	; unspill
+	LD	BC,(IX+-24)	; unspill
 	SBC	HL,BC
 	LD	BC,(IX+-9)	; unspill
 	ADD	HL,DE
@@ -496,7 +523,7 @@ L_24:
 	LD	BC,(IX+-6)
 	INC	BC
 	LD	(IX+-6),BC
-;  106			} 
+;  111			} 
 L_26:
 	LD	BC,64
 	LD	HL,(IX+-6)
@@ -511,9 +538,9 @@ L__12:
 	LD	BC,(IX+-3)
 	INC	BC
 	LD	(IX+-3),BC
-;  107		} 
+;  112		} 
 L_29:
-	LD	BC,48
+	LD	BC,60
 	LD	HL,(IX+-3)
 	OR	A,A
 	SBC	HL,BC
@@ -523,8 +550,8 @@ L_29:
 L__13:
 	JP	PO,L_27
 L__14:
-;  108	
-;  109	} 
+;  113	
+;  114	} 
 	LD	SP,IX
 	POP	IX
 	RET	
@@ -532,15 +559,15 @@ L__14:
 
 ;**************************** _generateTables ***************************
 ;Name                         Addr/Register   Size   Type
-;_xstart                             STATIC   9216   variable
+;_xstart                             STATIC  11520   variable
 ;_sintable                           STATIC    192   variable
 ;_sin                                IMPORT  -----   function
 ;j                                     IX-6      3   variable
 ;i                                     IX-3      3   variable
 
 
-; Stack Frame Size: 24 (bytes)
-;       Spill Code: 0 (instruction)
+; Stack Frame Size: 34 (bytes)
+;       Spill Code: -1 (instruction)
 
 
 	XREF _drawFloor:ROM
@@ -553,7 +580,6 @@ L__14:
 	XREF _gfx_SetTextFGColor:ROM
 	XREF _gfx_SetTextXY:ROM
 	XREF _gfx_PrintUInt:ROM
-	XREF _gfx_PrintChar:ROM
 	XREF _gfx_SwapDraw:ROM
 	XREF _gfx_SetDraw:ROM
 	XREF _gfx_ZeroScreen:ROM
